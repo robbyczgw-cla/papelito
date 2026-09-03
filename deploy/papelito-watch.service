@@ -1,0 +1,14 @@
+[Unit]
+Description=Papelito watchdog: nag open cases two days before the deadline
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/work/papelito
+Environment=PYTHONUNBUFFERED=1
+Environment=PAPELITO_DB=%h/work/papelito/data/papelito.db
+EnvironmentFile=-%h/work/papelito/.env
+ExecStart=%h/work/papelito/.venv/bin/python -m papelito.watch
+
+# User service: no User= line. If the repo is not ~/work/papelito, change
+# WorkingDirectory, PAPELITO_DB and ExecStart to match.

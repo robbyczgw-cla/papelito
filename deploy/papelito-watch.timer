@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily Papelito watchdog
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+Unit=papelito-watch.service
+
+[Install]
+WantedBy=timers.target

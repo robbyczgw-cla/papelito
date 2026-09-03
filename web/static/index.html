@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4efe4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Papelito">
+<meta name="description" content="The note from the Kindergarten, read, filed and answered. Nothing is sent without you.">
+<title>Papelito</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/static/icon-180.png">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-view="cases">
+
+<header class="top">
+  <div class="top-left">
+    <h1>Papelito</h1>
+    <p class="household" id="household" hidden></p>
+  </div>
+  <div class="top-right">
+    <div class="lang" id="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" lang="en">EN</button>
+      <button type="button" data-lang="de" lang="de">DE</button>
+    </div>
+    <p class="today" id="today"></p>
+  </div>
+</header>
+
+<aside class="away" id="away" hidden>
+  <p class="away-kicker" id="away-kicker"></p>
+  <p class="away-body" id="away-body"></p>
+  <ul class="away-list" id="away-list"></ul>
+  <button type="button" id="away-run" class="ghost" data-t="away_run"></button>
+</aside>
+
+<div class="notice" id="notice" hidden>
+  <p data-t="notice_q"></p>
+  <div class="notice-buttons">
+    <button type="button" id="notice-yes" data-t="notice_yes"></button>
+    <button type="button" id="notice-no" class="ghost" data-t="notice_no"></button>
+  </div>
+</div>
+
+<!-- Which child the papers belong to. Only shown once a second child exists. -->
+<nav class="chips" id="chips" aria-label="Child" hidden></nav>
+
+<!-- ------------------------------------------------------------- cases -->
+<section class="view" id="view-cases">
+  <main id="list" class="list" aria-live="polite"></main>
+
+  <section class="empty" id="empty" hidden>
+    <p class="empty-lead" data-t="empty_lead"></p>
+    <ol class="columns" id="empty-columns"></ol>
+    <p class="empty-note" data-t="empty_note"></p>
+  </section>
+
+  <p class="toggle-done">
+    <button type="button" id="toggle-done" class="ghost"></button>
+  </p>
+</section>
+
+<!-- ------------------------------------------------------------- board -->
+<section class="view" id="view-board" hidden>
+  <h2 class="view-title" data-t="board_title"></h2>
+  <p class="view-lead" data-t="board_lead"></p>
+  <div class="board" id="board" aria-live="polite"></div>
+  <p class="view-empty" id="board-empty" data-t="board_empty" hidden></p>
+</section>
+
+<!-- ---------------------------------------------------------- calendar -->
+<section class="view" id="view-calendar" hidden>
+  <div class="cal-head">
+    <button type="button" class="cal-step" id="cal-prev" aria-label="Previous month">&#8249;</button>
+    <h2 class="cal-title" id="cal-title" aria-live="polite"></h2>
+    <button type="button" class="cal-step" id="cal-next" aria-label="Next month">&#8250;</button>
+  </div>
+  <p class="cal-today"><button type="button" id="cal-today" class="ghost" data-t="cal_today"></button></p>
+  <div class="cal-week" id="cal-week" aria-hidden="true"></div>
+  <div class="cal-grid" id="cal-grid" role="grid"></div>
+  <div class="cal-legend">
+    <span class="key key-due" data-t="cal_key_due"></span>
+    <span class="key key-open" data-t="cal_key_open"></span>
+  </div>
+  <section class="cal-day" id="cal-day" aria-live="polite"></section>
+</section>
+
+<!-- ---------------------------------------------------------- settings -->
+<section class="view" id="view-settings" hidden>
+  <h2 class="view-title" data-t="settings_title"></h2>
+
+  <form class="form" id="settings-form" autocomplete="off">
+    <label class="field">
+      <span data-t="s_household"></span>
+      <input type="text" id="s-household" name="household" enterkeyhint="done">
+    </label>
+    <label class="field">
+      <span data-t="s_parent"></span>
+      <input type="text" id="s-parent" name="parent" enterkeyhint="done">
+    </label>
+    <label class="field">
+      <span data-t="s_signature"></span>
+      <textarea id="s-signature" name="signature" rows="3"></textarea>
+      <small class="hint" data-t="s_signature_hint"></small>
+    </label>
+
+    <div class="field">
+      <span data-t="s_language"></span>
+      <div class="lang lang-wide" id="s-lang" role="group">
+        <button type="button" data-lang="en" lang="en">EN</button>
+        <button type="button" data-lang="de" lang="de">DE</button>
+      </div>
+    </div>
+
+    <fieldset class="children">
+      <legend data-t="s_children"></legend>
+      <ul class="child-list" id="child-list"></ul>
+      <p class="hint" id="no-children" data-t="s_no_children" hidden></p>
+
+      <div class="child-add">
+        <input type="text" id="child-name" enterkeyhint="done">
+        <input type="text" id="child-kg" enterkeyhint="done">
+        <button type="button" id="child-add" data-t="s_add"></button>
+      </div>
+    </fieldset>
+
+    <button type="submit" class="save" id="settings-save" data-t="s_save"></button>
+    <p class="hint privacy" data-t="s_privacy"></p>
+  </form>
+</section>
+
+<!-- ------------------------------------------------------------ footer -->
+<footer class="bar">
+  <div class="bar-row" id="shoot">
+    <label class="shoot">
+      <input type="file" id="photo-camera" accept="image/*" capture="environment">
+      <span data-t="shoot"></span>
+    </label>
+    <label class="shoot shoot-secondary">
+      <input type="file" id="photo-file" accept="image/*">
+      <span data-t="upload"></span>
+    </label>
+  </div>
+
+  <nav class="tabs" id="tabs" aria-label="Papelito">
+    <button type="button" data-view="cases" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h9l5 5v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M14 4v5h5"/><path d="M8 13h7M8 17h5"/></svg>
+      <span data-t="nav_cases"></span>
+    </button>
+    <button type="button" data-view="board">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="7.5" height="9" rx="1"/><rect x="13.5" y="4" width="7.5" height="6" rx="1"/><rect x="3" y="16" width="7.5" height="4" rx="1"/><rect x="13.5" y="13" width="7.5" height="7" rx="1"/></svg>
+      <span data-t="nav_board"></span>
+    </button>
+    <button type="button" data-view="calendar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="16" cy="15" r="1.6" fill="currentColor" stroke="none"/></svg>
+      <span data-t="nav_calendar"></span>
+    </button>
+    <button type="button" data-view="settings">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.2M12 18.8V21M21 12h-2.2M5.2 12H3M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6M18.4 18.4l-1.6-1.6M7.2 7.2 5.6 5.6"/></svg>
+      <span data-t="nav_settings"></span>
+    </button>
+  </nav>
+</footer>
+
+<p class="toast" id="toast" hidden></p>
+
+<template id="slip-tpl">
+  <article class="slip">
+    <header class="slip-head">
+      <span class="sender" data-f="sender"></span>
+      <span class="received" data-f="received"></span>
+    </header>
+
+    <p class="reminder" data-f="reminder" hidden></p>
+    <h2 class="title" data-f="title"></h2>
+    <p class="papers" data-f="papers" hidden></p>
+
+    <p class="child-pick" data-f="child" hidden>
+      <label>
+        <span data-t="for_child"></span>
+        <select data-act="child"></select>
+      </label>
+    </p>
+
+    <div class="table" data-f="table"></div>
+
+    <div class="ask" data-f="ask" hidden>
+      <p data-f="question"></p>
+      <div class="ask-buttons">
+        <button type="button" data-act="yes" data-t="yes"></button>
+        <button type="button" data-act="no" class="ghost" data-t="no"></button>
+      </div>
+    </div>
+
+    <button type="button" class="expand" data-act="expand" data-t="view_original"></button>
+    <div class="detail" data-f="detail" hidden>
+      <ul class="sources" data-f="sources"></ul>
+      <img class="crop" data-f="crop" alt="" hidden>
+    </div>
+
+    <div class="actions">
+      <button type="button" data-act="copy" data-t="copy"></button>
+      <a class="btn" data-act="ics" download data-t="calendar"></a>
+      <button type="button" data-act="done" data-t="done"></button>
+      <button type="button" data-act="delete" class="danger" data-t="delete"></button>
+      <button type="button" class="ghost" data-act="agentcore" hidden data-t="ac_run"></button>
+    </div>
+    <div class="ac-panel" data-f="ac" hidden>
+      <p class="ac-badge" data-f="ac-badge"></p>
+      <pre class="ac-card" data-f="ac-card"></pre>
+    </div>
+  </article>
+</template>
+
+<template id="live-tpl">
+  <article class="slip live" data-state="live">
+    <header class="slip-head">
+      <span class="sender">Papelito</span>
+      <span class="received" data-f="tools"></span>
+    </header>
+    <h2 class="title" data-f="title"></h2>
+    <div class="table" data-f="table"></div>
+    <p class="live-note" data-t="live_note"></p>
+  </article>
+</template>
+
+<template id="pin-tpl">
+  <article class="pin" tabindex="0" role="button">
+    <span class="tack" aria-hidden="true"></span>
+    <img class="pin-photo" data-f="photo" alt="" loading="lazy" decoding="async" hidden>
+    <p class="pin-meta"><span class="pin-child" data-f="child"></span><span class="pin-date" data-f="received"></span></p>
+    <h3 class="pin-title" data-f="title"></h3>
+    <p class="pin-preview" data-f="preview"></p>
+    <p class="pin-due" data-f="due" hidden></p>
+    <span class="pin-tag" data-f="tag"></span>
+  </article>
+</template>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

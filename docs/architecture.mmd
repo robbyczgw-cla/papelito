@@ -1,0 +1,59 @@
+%% Papelito architecture, in the five groups the Agents for Humans FAQ asks for:
+%% 1 user input/interface, 2 Strands Agents, 3 tools & integrations, 4 AWS services, 5 output.
+%% Everything drawn here exists in the repo. No Bedrock models, no Lambda, no S3, no DynamoDB.
+%% TOOLS ~~~ SDK is an invisible spacer: it keeps the five groups in one left-to-right row.
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"Helvetica, Arial, sans-serif","fontSize":"17px","primaryTextColor":"#111111","lineColor":"#4a4a4a","clusterBkg":"#ffffff","clusterBorder":"#8a8a8a","titleColor":"#111111"},"flowchart":{"nodeSpacing":45,"rankSpacing":55,"curve":"basis","padding":14}}}%%
+flowchart LR
+
+    subgraph G1["1. User input / interface"]
+        direction TB
+        WEB["Web app: FastAPI PWA<br/>photo, gallery"]
+        CLI["CLI: papelito<br/>read, watch, done"]
+        WD["Watchdog<br/>systemd timer, daily"]
+    end
+
+    subgraph G2["2. Strands Agents"]
+        direction TB
+        AGENT["Strands Agent, one agent<br/>@tool loop:<br/>model → tools →<br/>reasoning → response<br/><br/>vision model<br/>deepseek-v4-flash-<br/>vision-exp<br/>text model<br/>deepseek-v4-flash<br/>both via Zen, not Bedrock"]
+    end
+
+    subgraph G3["3. Tools &amp; integrations"]
+        direction TB
+        TOOLS["11 @tool functions<br/>check_photo, read_note<br/>extract_actions<br/>resolve_dates, match_case<br/>save_case, explain_in<br/>write_ics, draft_reply<br/>glossary_at, lookup_office"]
+        DB[("SQLite case file<br/>save_case writes here")]
+        MCP["Web Search Plus MCP<br/>lookup_office calls it<br/>office name only, no PII"]
+    end
+
+    subgraph G4["4. AWS services"]
+        direction TB
+        SDK["Strands Agents SDK<br/>runs the agent in box 2"]
+        AC["AgentCore Runtime<br/>eu-central-1, SigV4<br/>extract + explain<br/>of seed text"]
+    end
+
+    subgraph G5["5. Output"]
+        direction TB
+        OUT["Card in English<br/>German reply, Sie-form<br/>never auto-sent<br/>.ics event, VALARM -48 h<br/>reminder 2 days<br/>before the deadline"]
+    end
+
+    WEB -- "photo" --> AGENT
+    CLI -- "photo path" --> AGENT
+    WD -- "read due cases" --> DB
+    AGENT -- "tool calls" --> TOOLS
+    TOOLS -. "same 2 tools" .-> AC
+    TOOLS -- "card, reply, .ics" --> OUT
+    AC -- "card" --> OUT
+    WD -- "reminder" --> OUT
+    OUT -- "shown in app + CLI" --> WEB
+
+    TOOLS ~~~ SDK
+
+    classDef n1 fill:#e8f0fe,stroke:#3a5a9b,stroke-width:1.5px,color:#111111
+    classDef n2 fill:#e6f6ec,stroke:#2f7a4d,stroke-width:1.5px,color:#111111
+    classDef n3 fill:#fdf2dc,stroke:#9a7226,stroke-width:1.5px,color:#111111
+    classDef n4 fill:#fdeceb,stroke:#a4453d,stroke-width:1.5px,color:#111111
+    classDef n5 fill:#efe9fb,stroke:#5f4a9b,stroke-width:1.5px,color:#111111
+    class WEB,CLI,WD n1
+    class AGENT n2
+    class TOOLS,DB,MCP n3
+    class SDK,AC n4
+    class OUT n5

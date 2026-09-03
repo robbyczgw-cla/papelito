@@ -1,0 +1,580 @@
+# Austrian Kindergarten / family-paper glossary for Papelito.
+# Static, cited. Amounts and Land rules change. Not legal advice.
+# If a claim is not in the cited page, the entry says unverified.
+
+terms:
+  - term: Kindergarten
+    aliases:
+      - Kiga
+      - Kindergarden
+      - Kindergaten
+      - Kindergartengruppe
+      - elementare Bildungseinrichtung
+    en: Austrian preschool, usually for children from about age three until school. It is not called "Kita".
+    explanation: >
+      In Austria the everyday and official word for preschool is Kindergarten,
+      not Kita. The Federal Chancellery describes Kindergärten as
+      family-supplementing care from about two and a half or three years until
+      school entry. Vienna's Kindergartengesetz defines a Kindergarten as a
+      fixed facility for regular daytime education and care; a Vienna
+      Kindergarten site may run Kleinkindergruppen (to age 3),
+      Kindergartengruppen (about 3 to school), Familiengruppen, and in some
+      sites Hortgruppen for school children. Elementare Bildung is Land law,
+      so ages, hours and fees differ by Bundesland. Do not render this word as
+      Kita on Austrian paper. Translate Austrian Kindergarten as Austrian preschool,
+      never as Kita.
+    see_also:
+      - Kita
+      - Hort
+      - Kindergartenpflicht
+    citations:
+      - name: Bundeskanzleramt, Struktur und Formen Kinderbildung und -betreuung
+        url: https://www.bundeskanzleramt.gv.at/agenda/familie/kinderbildung-und-betreuung/struktur-und-formen-kinderbildung-und--betreuung.html
+      - name: RIS, Wiener Kindergartengesetz § 3
+        url: https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=LrW&Gesetzesnummer=20000263&Paragraf=3
+      - name: oesterreich.gv.at, Kindergärten
+        url: https://www.oesterreich.gv.at/de/themen/familie_und_partnerschaft/familie-und-kinderfuersorge/kinderbetreuung/2/Seite.370130
+
+  - term: Kita
+    aliases:
+      - KiTa
+      - KITA
+      - Kindertagesstätte
+      - Kindertagesstaette
+      - Kindertageseinrichtung
+      - Kindertagespflege
+    en: German daycare term. Austrian notes use Kindergarten, not Kita.
+    explanation: >
+      Kita is the wrong German word for Austrian Kindergarten paper. In Germany,
+      Kita (Kindertagesstätte / Kindertageseinrichtung) is the umbrella name
+      for daycare; SGB VIII § 22 speaks of Tageseinrichtungen, not of the
+      Austrian Kindergarten. Austrian official texts use Kindergarten
+      (preschool), Kleinkindergruppe / Kinderkrippe / Krabbelstube (under 3),
+      and Hort (after-school). Statistik Austria's statistical label
+      Kindertagesheim is not the same as saying Kita. If a private Austrian
+      Träger brands itself "Kita", that is marketing; unverified as an Austrian
+      legal name. Translate Austrian Kindergarten as Austrian preschool, never
+      as Kita.
+    see_also:
+      - Kindergarten
+      - Hort
+      - Kleinkindergruppe
+    citations:
+      - name: SGB VIII § 22, Grundsätze der Förderung (Germany)
+        url: https://www.gesetze-im-internet.de/sgb_8/__22.html
+      - name: Bundeskanzleramt, Struktur und Formen Kinderbildung und -betreuung
+        url: https://www.bundeskanzleramt.gv.at/agenda/familie/kinderbildung-und-betreuung/struktur-und-formen-kinderbildung-und--betreuung.html
+      - name: oesterreich.gv.at, Kindergärten
+        url: https://www.oesterreich.gv.at/de/themen/familie_und_partnerschaft/familie-und-kinderfuersorge/kinderbetreuung/2/Seite.370130
+
+  - term: MA
+    aliases:
+      - Magistrat
+      - Magistratsabteilung
+      - Magistratsabteilung 10
+      - MA 10
+      - MA10
+      - MA 11
+      - MA11
+      - Stadt Wien Kindergärten
+    en: Vienna city administration department (Magistrat), for example MA 10 for Kindergartens.
+    explanation: >
+      On Vienna paper, MA means Magistratsabteilung, a numbered department of
+      the Magistrat der Stadt Wien (the city administration). Kindergarten and
+      Hort sit with MA 10 (Stadt Wien - Kindergärten). Child and youth welfare
+      sits with MA 11. The Magistrat is the administration of a Statutarstadt;
+      Vienna is both a Gemeinde and a Bundesland, so its Magistrat also does
+      Land work. This is not a village Gemeindeamt. A letterhead "MA 10" is
+      the Vienna Kindergarten department, not a tax office and not a small-town
+      municipal office.
+    see_also:
+      - Gemeinde
+      - Hort
+      - Kindergarten
+    citations:
+      - name: Stadt Wien, Magistratsabteilungen
+        url: https://www.wien.gv.at/kontakt/magistratsabteilungen
+      - name: Stadt Wien, Aufgaben der Abteilung Kindergärten (MA 10)
+        url: https://www.wien.gv.at/kontakt/ma10-aufgaben
+      - name: Stadt Wien, Kontakt MA 10
+        url: https://www.wien.gv.at/kontakt/ma10
+
+  - term: Gemeinde
+    aliases:
+      - Gemeindeamt
+      - Gemeindeämter
+      - Hauptwohnsitzgemeinde
+      - Kommune
+    en: Municipality. Outside Vienna, the Gemeindeamt often handles Kindergarten matters.
+    explanation: >
+      Gemeinde is the municipality. Outside statutory cities, the Gemeindeamt
+      is the local office. oesterreich.gv.at says public Kindergarten
+      registration is usually at the Gemeindeamt or, in Statutarstädten, the
+      Magistrat (in Vienna a Magistratisches Bezirksamt for residence
+      registration; Kindergarten places go through MA 10 Servicestellen).
+      Over half of Austrian childcare facilities are run by Gebietskörperschaften,
+      mainly Gemeinden. Do not treat Gemeinde and MA as the same office: MA
+      is a Vienna (or other statutory-city) department; Gemeindeamt is the
+      municipal office elsewhere. Which counter handles a given letter is on
+      the letterhead.
+    see_also:
+      - MA
+      - Kindergarten
+    citations:
+      - name: oesterreich.gv.at, Kindergärten (Gemeindeamt bzw. Magistrat)
+        url: https://www.oesterreich.gv.at/de/themen/familie_und_partnerschaft/familie-und-kinderfuersorge/kinderbetreuung/2/Seite.370130
+      - name: oesterreich.gv.at, Kindergartenanmeldung (zuständige Stelle)
+        url: https://www.oesterreich.gv.at/de/themen/familie_und_partnerschaft/geburt-eines-kindes/3/1/Seite.080800
+      - name: Bundeskanzleramt, Träger sind vor allem Gemeinden
+        url: https://www.bundeskanzleramt.gv.at/agenda/familie/kinderbildung-und-betreuung/struktur-und-formen-kinderbildung-und--betreuung.html
+
+  - term: Hort
+    aliases:
+      - Kinderhort
+      - Hortgruppe
+      - Nachmittagsbetreuung
+      - städtischer Hort
+    en: After-school care for primary-school children.
+    explanation: >
+      Hort is after-school care for school-age children, not Kindergarten.
+      The Federal Chancellery: Horte care for schulpflichtige Kinder after
+      class and on days without school, with homework support and leisure.
+      In Vienna, municipal Hort is for Volksschulkinder from half-day primary
+      schools; all-day schools provide afternoon care at school. Vienna
+      municipal Hort is open on school days from 11:00 to 17:30 (until 18:00
+      if needed) and year-round including holidays. Unlike municipal
+      Kindergarten attendance in Vienna, Hort still charges an Elternbeitrag.
+      Stadt Wien published for September 2026: Hortbetreuung 232,60 Euro plus
+      Mittagessen 89,81 Euro per month; amounts change.
+    see_also:
+      - Hortanmeldung
+      - Kindergarten
+      - Beitrag
+    citations:
+      - name: Bundeskanzleramt, Horte
+        url: https://www.bundeskanzleramt.gv.at/agenda/familie/kinderbildung-und-betreuung/struktur-und-formen-kinderbildung-und--betreuung.html
+      - name: Stadt Wien, Städtischer Hort für Volksschulkinder
+        url: https://www.wien.gv.at/bildung/hort-oeffentlich
+      - name: Stadt Wien, Hort für Volksschulkinder
+        url: https://www.wien.gv.at/bildung/tagesbetreuung-im-hort
+
+  - term: Elternverein
+    aliases:
+      - Elternvereine
+      - Elternvertretung
+      - Elternversammlung
+      - EV
+    en: Parents' association. It has a legal basis at schools; at Kindergartens it varies.
+    explanation: >
+      Elternverein is a parents' association. At schools, Schulunterrichtsgesetz
+      § 63 gives a recognised Elternverein information and hearing rights, and
+      the head must support such a Verein. Kindergarten is Land law, not SchUG.
+      Upper Austria's Kinderbildungs- und -betreuungsgesetz (as summarised by
+      the Arbeiterkammer) requires an Elternversammlung each working year and
+      says election of a Elternvertretung or founding an Elternverein is to be
+      aimed at. unverified that a Kindergarten Elternverein has the same
+      statutory rights as a school Elternverein. On Kindergarten paper it is
+      usually a local parents' group that organises, collects money, or speaks
+      for families. Check the note for what they actually ask.
+    see_also:
+      - Elternabend
+      - Beitrag
+    citations:
+      - name: RIS, Schulunterrichtsgesetz § 63
+        url: https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=10009600&Paragraf=63
+      - name: Arbeiterkammer Oberösterreich, Kinderbetreuungsgesetz (Elternversammlung / Elternverein)
+        url: https://ooe.arbeiterkammer.at/beratung/berufundfamilie/kinderbetreuung/Kinderbetreuungsgesetz.html
+
+  - term: Meldezettel
+    aliases:
+      - Meldezettels
+      - Meldeformular
+      - Anmeldung des Wohnsitzes
+      - Bestätigung der Meldung
+    en: Austrian residence-registration form for moving in, out, or changing address.
+    explanation: >
+      Meldezettel is the Austrian residence-registration form, not a school
+      slip. oesterreich.gv.at: today Meldezettel means only the application
+      form used to enter data into the Zentrales Melderegister for An-, Ab-
+      or Ummeldung. The old stamped carbon copy was replaced by a
+      Bestätigung der Meldung; a Meldebestätigung is a separate paid extract
+      if you need proof of address. Registration is due within three days of
+      moving in. The Meldebehörde is the Gemeindeamt, in Statutarstädten the
+      Magistrat, in Vienna a Magistratisches Bezirksamt. Kindergarten access
+      and Vienna's beitragsfreier Kindergarten often turn on Hauptwohnsitz.
+      This word is the real document name.
+    see_also:
+      - Gemeinde
+      - MA
+    citations:
+      - name: oesterreich.gv.at, Bei der Behörde melden
+        url: https://www.oesterreich.gv.at/de/lebenslagen/Ich-wohne-bald-in-einem-neuen-Zuhause/Melden
+      - name: oesterreich.gv.at, Meldezettel (Antragsformular)
+        url: https://www.oesterreich.gv.at/dam/jcr:d0c97509-1a04-4b5a-8626-8a5f9e6b4b39/Meldezettel_2023_ausfuellbar.pdf
+
+  - term: Elternabend
+    aliases:
+      - Elterenabend
+      - Elternabendes
+      - Elternabende
+      - Elternversammlung
+    en: Parent meeting, usually held in the evening.
+    explanation: >
+      Elternabend is a parents' evening at the Einrichtung. Vienna municipal
+      Hort AGB: at least one Elternabend is offered per Betriebsjahr (the
+      statutory school year); parents of a quarter of the children at the
+      site may demand one in writing. Kindergarten notes use the same word
+      for an evening meeting about the group, trips, or organisation.
+      Oberösterreich law (via Arbeiterkammer) requires an Elternversammlung
+      after the working year starts; that is a related Land term, not proof
+      that every Austrian Kindergarten must hold a meeting named Elternabend.
+      The slip usually says the date, time, and whether attendance is asked.
+    see_also:
+      - Elternverein
+      - Rückmeldung
+    citations:
+      - name: Stadt Wien, AGB städtischer Hort (Elternabend)
+        url: https://www.wien.gv.at/pdf/ma10/agb-staedtischer-hort.pdf
+      - name: Arbeiterkammer Oberösterreich, Elternversammlung
+        url: https://ooe.arbeiterkammer.at/beratung/berufundfamilie/kinderbetreuung/Kinderbetreuungsgesetz.html
+
+  - term: Ausflug
+    aliases:
+      - Ausflüge
+      - Ausflugen
+      - Wandertag
+      - Ausgang
+      - Ausgänge
+    en: Kindergarten or Hort outing. It often asks for money, clothing, or a signature.
+    explanation: >
+      Ausflug is an outing. Kindergarten and Hort notes ask parents to
+      consent, send cash, pack weather clothes, and meet a deadline. Stadt
+      Wien MA 11's Aufsichtspflicht leaflet tells staff to plan Ausflüge and
+      Ausgänge carefully, including enough accompanying adults. There is no
+      single nationwide cash amount or packing list; read the source line on
+      the paper. unverified as a statutory duty named Ausflug. Related slips
+      are often Einverständniserklärung, Beitrag, Regenkleidung/Gummistiefel.
+    see_also:
+      - Einverständniserklärung
+      - Beitrag
+      - Regenkleidung
+    citations:
+      - name: Stadt Wien MA 11, Leitfaden Aufsichtspflicht (Ausflüge/Ausgänge)
+        url: https://www.wien.gv.at/pdf/ma11/leitfaden-aufsichtspflicht.pdf
+
+  - term: Rückmeldung
+    aliases:
+      - Rueckmeldung
+      - Ruckmeldung
+      - Rückmeldungen
+      - Rueckmeldung bis
+    en: A reply or confirmation is required, usually by a deadline.
+    explanation: >
+      Rückmeldung on Kindergarten paper means the parent must reply or
+      confirm, usually by a named day ("Rückmeldung bis Freitag"). It is
+      everyday wording, not a named Austrian statute. The action is whatever
+      the note asks: yes/no, a signature, cash, or a form. Do not invent a
+      legal effect beyond the sentence on the paper. unverified as a legal
+      term.
+    see_also:
+      - Einverständniserklärung
+      - Elternabend
+      - Ausflug
+    citations: []
+
+  - term: Fortbildung
+    aliases:
+      - Fortbildungen
+      - Weiterbildung
+      - pädagogische Konferenz
+      - Konferenztag
+      - Konferenztage
+    en: Staff training. The Kindergarten sometimes closes that day.
+    explanation: >
+      Fortbildung is staff training. Vienna Kindergartenverordnung: Fachkräfte
+      must complete at least 16 Unterrichtseinheiten of Fort- und Weiterbildung
+      each year, including Kinderschutz units on a cycle. Parents meet the
+      word when a note says the group is closed because of Fortbildung or a
+      pädagogischer Konferenztag. Stadt Wien municipal Kindergärten hold three
+      pädagogische Konferenztage per Betriebsjahr; children cannot attend that
+      site then, with emergency care at a nearby Kindergarten if needed.
+      Closure calendars are site-specific. Other Länder set their own staff
+      training rules.
+    see_also:
+      - Schließtage
+    citations:
+      - name: RIS, Wiener Kindergartenverordnung § 3 Abs. 5
+        url: https://www.ris.bka.gv.at/GeltendeFassung.wxe?Abfrage=LrW&Gesetzesnummer=20000264
+      - name: Stadt Wien, städtische Kindergärten (Konferenztage)
+        url: https://www.wien.gv.at/bildung/kindergarten-staedtisch-kosten-oeffnungszeiten
+      - name: Stadt Wien MA 11, Fortbildungen Kindertagesbetreuung
+        url: https://www.wien.gv.at/bildung/kindertagesbetreuung-workshops-fuer-betreiber-und-betreuer
+
+  - term: Schließtage
+    aliases:
+      - Schliesstage
+      - Schliestage
+      - Schließtag
+      - Schliesstag
+      - schulfreie Tage
+      - Betriebstage geschlossen
+    en: Days when the Kindergarten or Hort is closed.
+    explanation: >
+      Schließtage are days the Einrichtung is closed. Stadt Wien municipal
+      Kindergärten: closed on statutory holidays, 24 and 31 December, on three
+      pädagogische Konferenztage per Betriebsjahr, and on 24 January (Tag der
+      Elementarpädagogik) when all Vienna elementary-education sites close.
+      Other Träger and Länder publish their own lists; do not copy the Vienna
+      municipal list onto a Gemeinde Kindergarten without checking the note.
+      A Fortbildung day is a common reason on the slip.
+    see_also:
+      - Fortbildung
+      - Kindergartenpflicht
+    citations:
+      - name: Stadt Wien, Fakten zu städtischen Kindergärten (Schließtage)
+        url: https://www.wien.gv.at/bildung/kindergarten-staedtisch-kosten-oeffnungszeiten
+
+  - term: Beitrag
+    aliases:
+      - Beiträge
+      - Beitrags
+      - Elternbeitrag
+      - Essensbeitrag
+      - Verpflegungsbeitrag
+      - Kostenbeitrag
+    en: A fee or payment requested for Kindergarten, meals, Hort, or an outing.
+    explanation: >
+      Beitrag on family paper is a parental payment. It may be the
+      Kindergartenbeitrag (attendance fee), an Essensbeitrag (meals), a Hort
+      Elternbeitrag, or a one-off amount for an Ausflug. Vienna municipal
+      Kindergarten attendance is beitragsfrei when the child and at least one
+      parent/guardian have Hauptwohnsitz in Vienna and the child is not older
+      than 6; meals and extras are not free. Stadt Wien published meal cost
+      99,49 Euro per month from September 2026. Hort in Vienna still charges
+      a monthly Elternbeitrag. Nationwide, the last half-day year before
+      school is beitragsfrei; other ages and hours are Land rules. Read which
+      Beitrag the note means. Amounts change.
+    see_also:
+      - Kindergartenbeitrag
+      - Hort
+      - Ausflug
+    citations:
+      - name: Stadt Wien, städtische Kindergärten (beitragsfrei, Essen)
+        url: https://www.wien.gv.at/bildung/kindergarten-staedtisch-kosten-oeffnungszeiten
+      - name: Stadt Wien, städtischer Hort (Elternbeitrag)
+        url: https://www.wien.gv.at/bildung/hort-oeffentlich
+      - name: oesterreich.gv.at, beitragsfreier Pflichtkindergarten
+        url: https://www.oesterreich.gv.at/de/themen/familie_und_partnerschaft/familie-und-kinderfuersorge/kinderbetreuung/2/Seite.370130
+
+  - term: Hortanmeldung
+    aliases:
+      - Hort-Anmeldung
+      - Hortanmeldungen
+      - Anmeldung Hortplatz
+      - Hortplatz Anmeldung
+    en: Registration for Hort, the primary-school after-school programme. In Vienna it is online with MA 10.
+    explanation: >
+      Hortanmeldung is the application for a Hort place. In Vienna: for a
+      child at a half-day Volksschule; afternoon care for all-day schools is
+      at school. Municipal Hort is applied for online or at MA 10
+      Servicestellen, with two preferred sites; private Hort is applied for
+      at that Hort. Needed papers include ID of the obsorgeberechtigte
+      person, proof of work or training, and a Schulplatzzusage or
+      Schulbesuchsbestätigung. A Kindergarten place at the same site is not a
+      guarantee of a Hort place. Deadlines are published per school year
+      (Stadt Wien listed first-class window 23 March to 10 April 2026 for
+      2026/27). Other Gemeinden set their own path.
+    see_also:
+      - Hort
+      - MA
+      - Beitrag
+    citations:
+      - name: Stadt Wien, Anmeldung für einen städtischen Hortplatz
+        url: https://www.wien.gv.at/amtswege/anmeldung-staedtischer-hortplatz
+      - name: Stadt Wien, Hort für Volksschulkinder
+        url: https://www.wien.gv.at/bildung/tagesbetreuung-im-hort
+
+  - term: Kindergartenpflicht
+    aliases:
+      - Kindergarten-Pflicht
+      - Pflichtkindergarten
+      - verpflichtendes Kindergartenjahr
+      - Besuchspflicht
+      - beitragsfreier Pflichtkindergarten
+    en: Compulsory half-day Kindergarten year before school.
+    explanation: >
+      Kindergartenpflicht is the compulsory kindergarten year. Art. 5 of the
+      Bund-Länder agreement (Art. 15a B-VG) for 2022/23 to 2026/27: children
+      who turn five by 31 August must attend a suitable elementary-education
+      setting until 31 August after they turn six, at least four days a week
+      for 20 hours, except land-law school-free days. Early school starters
+      are exempt. oesterreich.gv.at: September to June, plus up to five weeks
+      of extra holiday; exemptions exist (illness, severe disability, remote
+      home, home care or Tageseltern) on written application. Vienna's page
+      uses "turned 5 by 2 September" for Vienna residents and names an
+      administrative fine if the duty is ignored; exemptions go in writing to
+      MA 11. Details are Land law. Not the same as Schulpflicht.
+    see_also:
+      - Kindergartenbeitrag
+      - Kindergarten
+      - Schließtage
+    citations:
+      - name: RIS, Art. 15a-Vereinbarung Elementarpädagogik 2022/23–2026/27 Art. 5
+        url: https://ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=20012012&Artikel=5
+      - name: oesterreich.gv.at, Kindergärten (Besuchspflicht)
+        url: https://www.oesterreich.gv.at/de/themen/familie_und_partnerschaft/familie-und-kinderfuersorge/kinderbetreuung/2/Seite.370130
+      - name: Stadt Wien, Compulsory kindergarten year
+        url: https://www.wien.gv.at/en/education/compulsory-kindergarten-year
+
+  - term: Kindergartenbeitrag
+    aliases:
+      - Kindergartenbeiträge
+      - Kindergartenbeitraege
+      - Elternbeitrag Kindergarten
+      - beitragsfreier Kindergarten
+    en: Kindergarten fee. The final compulsory half-day before school is free nationwide.
+    explanation: >
+      Kindergartenbeitrag is the parental attendance fee. Since kindergarten
+      year 2009/10 the half-day last year before school (20 hours per week
+      without lunch) is beitragsfrei nationwide (beitragsfreier
+      Pflichtkindergarten). Hours beyond that, younger children, meals and
+      extras follow Land and Träger rules. Vienna: municipal Kindergarten
+      attendance is beitragsfrei for 0- to 6-year-olds with Hauptwohnsitz of
+      child and at least one parent/guardian in Vienna; meals are charged
+      (Stadt Wien, 99,49 Euro per month from September 2026). Families with
+      Hauptwohnsitz outside Vienna pay an Elternbeitrag in municipal Vienna
+      Kindergärten (Stadt Wien listed September 2026 half-day 209,19 Euro,
+      part-time 256,08 plus meals, full-day 353,45 plus meals). Other Länder
+      publish their own free-hour bands. Do not assume German Kita-Gebühr
+      tables.
+    see_also:
+      - Beitrag
+      - Kindergartenpflicht
+      - Kindergarten
+    citations:
+      - name: oesterreich.gv.at, Kindergärten (beitragsfreier Pflichtkindergarten, Länder)
+        url: https://www.oesterreich.gv.at/de/themen/familie_und_partnerschaft/familie-und-kinderfuersorge/kinderbetreuung/2/Seite.370130
+      - name: Stadt Wien, städtische Kindergärten (Kosten)
+        url: https://www.wien.gv.at/bildung/kindergarten-staedtisch-kosten-oeffnungszeiten
+      - name: Stadt Wien, Förderungen im Kindergarten
+        url: https://www.wien.gv.at/bildung/kindergarten-foerderungen
+
+  - term: Jausen
+    aliases:
+      - Jause
+      - Jausn
+      - Vormittagsjause
+      - Nachmittagsjause
+      - Jausenbox
+    en: Austrian snack, in the morning or afternoon, not lunch.
+    explanation: >
+      Jause is Austrian German for a snack, not Mittagessen. Stadt Wien
+      municipal Kindergarten models list Vormittagsjause and Jause am
+      Nachmittag beside Mittagessen, depending on Ganztags / Teilzeit /
+      Halbtags hours. A note that says "Jausen mitnehmen" or "Jausenbox"
+      wants a packed snack from home; a note about Jause in a municipal
+      Vienna Kindergarten may mean the snack the site serves as part of
+      Verpflegung. Do not translate as Kita-Frühstück. Packing rules are on
+      the slip, not in a nationwide statute.
+    see_also:
+      - Beitrag
+      - Kindergarten
+    citations:
+      - name: Stadt Wien, Besuchsmodelle und Essensangebot (Jause)
+        url: https://www.wien.gv.at/bildung/kindergarten-staedtisch-kosten-oeffnungszeiten
+
+  - term: Regenkleidung
+    aliases:
+      - Gummistiefel
+      - Gummistiefeln
+      - Regenzeug
+      - Matschhose
+      - Regenjacke
+      - Regenkleidung/Gummistiefel
+    en: Rain clothing and rubber boots for outdoor play or an outing.
+    explanation: >
+      Regenkleidung and Gummistiefel are rain clothes and rubber boots.
+      Kindergarten and Hort notes ask parents to send them for outdoor play
+      or an Ausflug. This is everyday packing language, not a named statute.
+      unverified as a legal duty. If the paper names a date, it is usually
+      tied to an Ausflug or a weather week. Bring what the sentence lists.
+    see_also:
+      - Ausflug
+    citations:
+      - name: Stadt Wien MA 11, Leitfaden Aufsichtspflicht (Ausflüge, Außenbereich)
+        url: https://www.wien.gv.at/pdf/ma11/leitfaden-aufsichtspflicht.pdf
+
+  - term: Einverständniserklärung
+    aliases:
+      - Einverstaendniserklaerung
+      - Einverständnis
+      - Einwilligung
+      - Einwilligungserklärung
+      - Zustimmung
+    en: Written permission for an outing, photos, or leaving independently.
+    explanation: >
+      Einverständniserklärung is a written consent the Einrichtung asks a
+      parent or guardian to sign. Typical subjects on Kindergarten paper are
+      an Ausflug, photos, data, or a child walking home alone. Stadt Wien
+      MA 11: Hort children may be Alleingeher only with written consent of
+      the obsorgeberechtigte person. There is no single nationwide form;
+      the slip in the bag is the form. unverified that every Kindergarten
+      must use this exact title. Related: Abholberechtigung names who may
+      collect the child.
+    see_also:
+      - Abholberechtigung
+      - Ausflug
+      - Rückmeldung
+    citations:
+      - name: Stadt Wien MA 11, Leitfaden Aufsichtspflicht (schriftliche Zustimmung, Alleingeher)
+        url: https://www.wien.gv.at/pdf/ma11/leitfaden-aufsichtspflicht.pdf
+
+  - term: Abholberechtigung
+    aliases:
+      - Abholberechtigt
+      - Abholberechtigte
+      - abholberechtigte Personen
+      - Abholvollmacht
+    en: Who may collect a child. Names must be given in writing.
+    explanation: >
+      Abholberechtigung is who may collect the child. Vienna municipal
+      Kindergarten AGB (VII): the obsorgeberechtigte person is entitled to
+      collect; they may name others in writing. Named collectors must be at
+      least 14 and able to supervise. Staff may refuse handover if identity
+      or fitness is in doubt, and must then call the parent. MA 11's
+      crisis leaflet: only hand over to someone on the list or with a signed
+      Vollmacht, and check ID. Changes of abholberechtigte Personen must be
+      given to the Leitung in writing. This is the Vienna municipal rule;
+      other Träger put similar clauses in their own AGB.
+    see_also:
+      - Einverständniserklärung
+    citations:
+      - name: Stadt Wien, AGB Kindergarten (VII. Abholberechtigte)
+        url: https://www.wien.gv.at/pdf/ma10/agb-neu.pdf
+      - name: Stadt Wien MA 11, Leitfaden Krisen (Abholsituation)
+        url: https://www.wien.gv.at/pdf/ma11/lf-krisen.pdf
+
+  - term: Kleinkindergruppe
+    aliases:
+      - Kleinkindgruppe
+      - Kinderkrippe
+      - Krabbelstube
+      - Krippe
+      - Kleinkindbetreuung
+    en: Group or care centre for children under three. It is neither Kindergarten nor Kita.
+    explanation: >
+      Kleinkindergruppe (also Kinderkrippe, Krabbelstube) is care for children
+      under three. The Federal Chancellery groups these as
+      Kleinkindbetreuungseinrichtungen. Vienna municipal sites: Kleinkindergruppe
+      up to age 3, up to 15 children. This is not Hort and not the German
+      word Kita. On Austrian paper, under-3 care keeps these names.
+    see_also:
+      - Kindergarten
+      - Kita
+    citations:
+      - name: Bundeskanzleramt, Krippen, Krabbelstuben, Kleinkindbetreuungseinrichtungen
+        url: https://www.bundeskanzleramt.gv.at/agenda/familie/kinderbildung-und-betreuung/struktur-und-formen-kinderbildung-und--betreuung.html
+      - name: Stadt Wien, Gruppenformen und Gruppengrößen
+        url: https://www.wien.gv.at/bildung/kindergarten-staedtisch-kosten-oeffnungszeiten
+      - name: oesterreich.gv.at, Kinderkrippe/Kleinkindgruppe
+        url: https://www.oesterreich.gv.at/de/lebenslagen/Ich-bin-f%C3%BCr-die-Erziehung-eines-Kindes-verantwortlich/Wo-Kinder-betreut-werden

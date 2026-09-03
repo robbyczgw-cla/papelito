@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "papelito"
+version = "0.1.0"
+description = "An Austrian Kindergarten paper assistant built with Strands Agents"
+requires-python = ">=3.10"
+dependencies = [
+    "strands-agents[openai]",
+    "pillow",
+    "fastapi",
+    "uvicorn",
+    "python-multipart",
+    "boto3",
+]
+
+[project.scripts]
+papelito = "papelito.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["papelito"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = [".git", ".venv", "runtime", "node_modules"]

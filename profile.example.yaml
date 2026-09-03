@@ -1,0 +1,9 @@
+names:
+  parent: "Lucía García"
+  household: "Demo household"
+children:
+  - id: mateo
+    name: "Mateo"
+    kindergarten: "Kindergarten Sonnenblume"
+reader_language: "English"
+reply_signature: "Lucía García"
