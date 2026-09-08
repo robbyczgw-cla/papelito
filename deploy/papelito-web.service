@@ -1,0 +1,22 @@
+[Unit]
+Description=Papelito judge demo web app
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=papelito
+Group=papelito
+WorkingDirectory=/opt/papelito/app
+EnvironmentFile=/etc/papelito/papelito.env
+ExecStart=/opt/papelito/venv/bin/uvicorn web.app:app --host 127.0.0.1 --port 8000 --workers 1
+Restart=on-failure
+RestartSec=3
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/papelito
+
+[Install]
+WantedBy=multi-user.target

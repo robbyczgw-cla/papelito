@@ -14,6 +14,7 @@ agent calls its tools in a fixed order. Nothing is ticked that did not run.
 from __future__ import annotations
 
 import inspect
+import os
 import threading
 import time
 import uuid
@@ -23,7 +24,9 @@ from typing import Any, Callable
 
 from web.store import DEFAULT_LANG, DEFAULT_STEP_KEYS, REPO_ROOT, lang_code, normalize, today
 
-PHOTO_DIR = REPO_ROOT / "photos" / "private"
+PHOTO_DIR = Path(os.environ.get("PAPELITO_PRIVATE_PHOTO_DIR", "")).expanduser() \
+    if os.environ.get("PAPELITO_PRIVATE_PHOTO_DIR", "").strip() \
+    else REPO_ROOT / "photos" / "private"
 # Accepted by the file input; anything else is rejected before it is written.
 ALLOWED_SUFFIXES = {".jpg", ".jpeg", ".png", ".heic", ".heif", ".webp"}
 
@@ -65,6 +68,39 @@ def save_photo(data: bytes, filename: str) -> Path:
     path = PHOTO_DIR / f"{datetime.now():%Y%m%d-%H%M%S}-{uuid.uuid4().hex[:6]}{suffix}"
     path.write_bytes(data)
     return path
+
+
+def discard_photo(path: str | os.PathLike[str]) -> bool:
+    """Delete one app-managed upload without following a final symlink."""
+    candidate = Path(path).expanduser()
+    if not candidate.is_absolute():
+        candidate = REPO_ROOT / candidate
+    try:
+        root = PHOTO_DIR.expanduser().resolve()
+        candidate = candidate.parent.resolve() / candidate.name
+        candidate.relative_to(root)
+    except (OSError, RuntimeError, ValueError):
+        return False
+    if candidate == root or not (candidate.is_file() or candidate.is_symlink()):
+        return False
+    # A reader can save a case and then fail while creating its artifacts.
+    # Preserve references from every case, including closed cases. If we
+    # cannot check ownership, retaining the file is safer than deleting it.
+    try:
+        from papelito.store import case_photo_paths
+        from web.store import get_store
+
+        for case in get_store().list_all():
+            paths = case_photo_paths(case, root) | case_photo_paths(case.get("_raw") or {}, root)
+            if candidate in paths or candidate.resolve() in paths:
+                return False
+    except Exception:
+        return False
+    try:
+        candidate.unlink()
+    except OSError:
+        return False
+    return True
 
 
 def _core_reader():
@@ -195,6 +231,9 @@ def _run(job: dict, received_on: str) -> None:
         outcome = analyse(Path(job["photo"]), received_on, job["lang"], on_step)
     except Exception as exc:  # pragma: no cover - analyse already guards, belt and braces
         outcome = {"case": None, "saved": False, "question": _msg("failed", job["lang"], err=type(exc).__name__)}
+    if outcome["case"] is None:
+        # There is no case through which the user could later delete this upload.
+        discard_photo(job["photo"])
     with _lock:
         job["case"] = outcome["case"]
         job["saved"] = outcome["saved"]
@@ -216,6 +255,14 @@ def get_job(job_id: str) -> dict | None:
         return dict(job, steps=[dict(s) for s in job["steps"]]) if job else None
 
 
+def mark_saved(job_id: str) -> None:
+    """Persist the saved flag on the live job, not only on a response copy."""
+    with _lock:
+        job = _jobs.get(job_id)
+        if job is not None:
+            job["saved"] = True
+
+
 def public(job: dict) -> dict:
     """What the page gets: no paths, no raw case."""
     return {
@@ -228,6 +275,12 @@ def public(job: dict) -> dict:
 
 def _prune() -> None:
     cutoff = time.time() - JOB_TTL_SECONDS
+    discarded: list[str] = []
     with _lock:
         for jid in [j for j, job in _jobs.items() if job["created"] < cutoff and job["state"] == "done"]:
+            job = _jobs[jid]
+            if not job.get("saved"):
+                discarded.append(job["photo"])
             del _jobs[jid]
+    for photo in discarded:
+        discard_photo(photo)

@@ -12,6 +12,7 @@ Environment:
     PAPELITO_TODAY=2026-09-10   fake clock, for the watchdog demo
     PAPELITO_DB=...             SQLite file for the fallback store
     PAPELITO_PROFILE=...        household profile (else ./profile.yaml)
+    PAPELITO_PRIVATE_PHOTO_DIR=... app-managed private upload directory
 
 Language: every list endpoint takes ``?lang=en|de``. The web and CLI default
 to English. The German reply and the calendar file are
@@ -20,6 +21,13 @@ always German, they go to the institution.
 
 from __future__ import annotations
 
+import base64
+import binascii
+import os
+import secrets
+import threading
+import time
+from collections import deque
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
@@ -27,6 +35,7 @@ from urllib.parse import quote
 from fastapi import Body, FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.requests import Request
 from starlette.concurrency import run_in_threadpool
 
 from papelito.reply import load_profile, save_profile
@@ -47,9 +56,59 @@ from web.store import (
 
 STATIC = Path(__file__).resolve().parent / "static"
 MAX_PHOTO_BYTES = 12 * 1024 * 1024
+MAX_UPLOAD_REQUEST_BYTES = MAX_PHOTO_BYTES + 1024 * 1024
 
 app = FastAPI(title="Papelito", docs_url=None, redoc_url=None)
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
+
+_UPLOAD_TIMES: deque[float] = deque()
+_UPLOAD_LOCK = threading.Lock()
+
+
+def _judge_mode() -> bool:
+    return os.environ.get("PAPELITO_JUDGE_MODE", "").strip().lower() in {"1", "true", "yes"}
+
+
+def _judge_credentials() -> tuple[str, str] | None:
+    """Optional HTTP Basic credentials for an isolated judging deployment."""
+    username = os.environ.get("PAPELITO_JUDGE_USERNAME", "")
+    password = os.environ.get("PAPELITO_JUDGE_PASSWORD", "")
+    if not _judge_mode() and not username and not password:
+        return None
+    # A partial deployment configuration must fail closed.
+    return username, password
+
+
+@app.middleware("http")
+async def judge_auth(request: Request, call_next):
+    expected = _judge_credentials()
+    if expected is not None:
+        supplied = request.headers.get("Authorization", "")
+        username = password = ""
+        if supplied.startswith("Basic "):
+            try:
+                decoded = base64.b64decode(supplied[6:], validate=True).decode("utf-8")
+                username, password = decoded.split(":", 1)
+            except (binascii.Error, UnicodeDecodeError, ValueError):
+                pass
+        user_ok = secrets.compare_digest(username.encode("utf-8"), expected[0].encode("utf-8"))
+        password_ok = secrets.compare_digest(password.encode("utf-8"), expected[1].encode("utf-8"))
+        if not (expected[0] and expected[1] and user_ok and password_ok):
+            return Response(status_code=401, headers={"WWW-Authenticate": 'Basic realm="Papelito judges"'})
+    if expected is not None and request.url.path == "/api/upload":
+        try:
+            request_bytes = int(request.headers.get("content-length", "0"))
+        except ValueError:
+            request_bytes = 0
+        if request_bytes > MAX_UPLOAD_REQUEST_BYTES:
+            return JSONResponse(
+                {"detail": {"code": "too_large", "message": ERRORS["too_large"][1]}},
+                status_code=ERRORS["too_large"][0],
+            )
+    response = await call_next(request)
+    if request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store"
+    return response
 
 UI = {
     "overdue": {"en": "Did you send the reply?", "de": "Hast du die Antwort geschickt?"},
@@ -65,9 +124,10 @@ ERRORS = {
     "empty_photo": (400, "The photo arrived empty"),
     "too_large": (413, "The photo is too large"),
     "bad_format": (400, "Unsupported photo format"),
-    "bad_answer": (400, "Answer must be si or no"),
+    "bad_answer": (400, "Answer must be yes or no"),
     "bad_settings": (400, "Invalid settings"),
     "bad_calendar": (400, "Invalid calendar month"),
+    "upload_limit": (429, "The judging demo has reached its hourly upload limit"),
     "no_photo": (404, "No photo for this case"),
     "no_job": (404, "Unknown upload"),
     "no_agentcore": (503, "AgentCore is not configured"),
@@ -82,6 +142,24 @@ def _error(code: str, message: str | None = None) -> HTTPException:
 
 def _lang(value: str | None) -> str:
     return lang_code(value, DEFAULT_LANG)
+
+
+def _take_upload_slot() -> bool:
+    """Bound model spend on a hosted judging demo; unlimited unless configured."""
+    try:
+        limit = int(os.environ.get("PAPELITO_UPLOADS_PER_HOUR", "0"))
+    except ValueError:
+        return not _judge_mode()
+    if limit <= 0:
+        return not _judge_mode()
+    now = time.monotonic()
+    with _UPLOAD_LOCK:
+        while _UPLOAD_TIMES and now - _UPLOAD_TIMES[0] >= 3600:
+            _UPLOAD_TIMES.popleft()
+        if len(_UPLOAD_TIMES) >= limit:
+            return False
+        _UPLOAD_TIMES.append(now)
+    return True
 
 
 def household_name() -> str:
@@ -240,7 +318,7 @@ def api_cases(include_done: bool = False, lang: str | None = Query(default=None)
         "reader": pipeline.reader_connected(),
         "due_count": sum(1 for v in views if v["state"] in ("due", "overdue")),
         "away": _away_view(),
-        "agentcore": agentcore.agentcore_enabled(),
+        "agentcore": not _judge_mode() and agentcore.agentcore_enabled(),
         "cases": views,
     })
 
@@ -286,6 +364,7 @@ def _job_view(job: dict, lang: str) -> dict:
         # The fallback reader files the photo unread; the case must still land in the list.
         case_id = get_store().save_case(job["case"])
         job["saved"] = True
+        pipeline.mark_saved(job["id"])
         out["case"] = view(_case_or_404(case_id, lang), lang)
     return out
 
@@ -295,11 +374,15 @@ async def api_upload(photo: UploadFile = File(...), received_on: str = Form(""),
                      lang: str | None = Query(default=None), wait: bool = Query(default=False)) -> JSONResponse:
     """Start reading a photo. Returns a job the page polls; ``?wait=true`` blocks until it is done."""
     ui = _lang(lang)
+    if Path(photo.filename or "").suffix.lower() not in pipeline.ALLOWED_SUFFIXES:
+        raise _error("bad_format")
     data = await photo.read()
     if not data:
         raise _error("empty_photo")
     if len(data) > MAX_PHOTO_BYTES:
         raise _error("too_large")
+    if not _take_upload_slot():
+        raise _error("upload_limit")
     try:
         path = pipeline.save_photo(data, photo.filename or "")
     except ValueError as exc:
@@ -340,16 +423,11 @@ def api_done(case_id: str) -> JSONResponse:
 
 @app.delete("/api/cases/{case_id}")
 def api_delete(case_id: str) -> JSONResponse:
-    """Really deletes: the case row and the photo on disk. No archive behind this."""
-    case = _case_or_404(case_id)
-    get_store().delete_case(case_id)
-    removed = 0
-    for crop in (False, True):
-        path = _photo_path(case, crop)
-        if path and path.is_file():
-            path.unlink()
-            removed += 1
-    return JSONResponse({"ok": True, "id": case_id, "photos_deleted": removed})
+    """Really deletes the case and its exact app-managed files. No soft delete."""
+    _case_or_404(case_id)
+    if not get_store().delete_case(case_id):
+        raise _error("not_found")
+    return JSONResponse({"ok": True, "id": case_id})
 
 
 @app.post("/api/cases/{case_id}/answer")
@@ -395,8 +473,9 @@ def api_seed(lang: str | None = Query(default=None)) -> JSONResponse:
     from web import demo
 
     store = get_store()
+    for case_id in demo.DEMO_CASE_IDS:
+        store.delete_case(case_id)
     for case in demo.seed_cases():
-        store.delete_case(case["id"])  # so re-seeding does not stack up actions
         store.save_case(case)
     return api_cases(include_done=True, lang=lang)
 
@@ -405,7 +484,7 @@ def api_seed(lang: str | None = Query(default=None)) -> JSONResponse:
 def api_agentcore_status() -> JSONResponse:
     """Whether the seed-text sidecar is wired. The PWA hides the button when not."""
     return JSONResponse({
-        "enabled": agentcore.agentcore_enabled(),
+        "enabled": not _judge_mode() and agentcore.agentcore_enabled(),
         "region": agentcore.REGION,
     })
 
@@ -414,15 +493,17 @@ def api_agentcore_status() -> JSONResponse:
 def api_agentcore(lang: str | None = Query(default=None)) -> JSONResponse:
     """Extract + explain of the seed Ausflug text on AgentCore Runtime.
 
-    Does not write a case, does not send, does not upload a photo. Seed text only.
+    Does not write a case, send, or upload a photo. This PWA route sends fixed demo text.
     """
-    if not agentcore.agentcore_enabled():
+    if _judge_mode() or not agentcore.agentcore_enabled():
         raise _error("no_agentcore")
     ui = _lang(lang)
     try:
         body = agentcore.invoke_runtime(agentcore.seed_payload(ui))
     except Exception as exc:
-        raise _error("agentcore_failed", str(exc)[:200]) from exc
+        raise _error("agentcore_failed") from exc
+    if not isinstance(body, dict) or body.get("error") or not isinstance(body.get("result"), dict):
+        raise _error("agentcore_failed")
     return JSONResponse(body)
 
 

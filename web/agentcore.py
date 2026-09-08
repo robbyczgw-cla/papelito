@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import uuid
 from pathlib import Path
@@ -58,11 +59,26 @@ def invoke_runtime(payload: dict[str, Any], arn: str | None = None) -> dict[str,
     if not runtime_arn:
         raise RuntimeError("PAPELITO_AGENTCORE_ARN is not set")
     import boto3
+    from botocore.config import Config
 
-    client = boto3.client("bedrock-agentcore", region_name=REGION)
+    client = boto3.client(
+        "bedrock-agentcore",
+        region_name=REGION,
+        config=Config(
+            connect_timeout=5,
+            read_timeout=110,
+            retries={"total_max_attempts": 1},
+        ),
+    )
+    identity = boto3.client(
+        "sts", region_name=REGION,
+        config=Config(connect_timeout=5, read_timeout=5, retries={"total_max_attempts": 1}),
+    ).get_caller_identity()
+    runtime_user = "papelito-" + hashlib.sha256(identity["Arn"].encode("utf-8")).hexdigest()[:32]
     response = client.invoke_agent_runtime(
         agentRuntimeArn=runtime_arn,
         runtimeSessionId=str(uuid.uuid4()),
+        runtimeUserId=runtime_user,
         qualifier="DEFAULT",
         payload=json.dumps(payload).encode("utf-8"),
     )

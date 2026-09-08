@@ -24,11 +24,11 @@ const T = {
       ["by when", "the date, with the German sentence it came from behind it"],
       ["done for you", "what Papelito already did: calendar entry, German reply, reminder two days before"],
     ],
-    empty_note: "A second note about the same event updates the case instead of opening a new one. Nothing is sent without you.",
+    empty_note: "A second note about the same event updates the case instead of opening a new one. Papelito never sends the reply.",
     show_done: "Show done", hide_done: "Hide done",
     shoot: "Photograph", upload: "Upload photo",
     received: "received {d}",
-    papers: "{n} papers, updated {d}",
+    papers: "{n} paper(s), updated {d}",
     yes: "Yes, correct", no: "No",
     view_original: "view the original", hide_original: "hide the original",
     no_source: "No original sentence saved.",
@@ -41,11 +41,11 @@ const T = {
     working: "the tools run, one after the other", tools_live: "live",
     live_note: "Each tick appears when that tool has returned. Nothing is ticked ahead of time.",
     saved: "Case saved", amended: "Case updated from this note: {n} line(s) replaced",
-    copied: "Reply copied. Paste it into your mail or message and send it yourself. Papelito never sends.",
+    copied: "Reply copied. Paste it into your email or message and send it yourself. Papelito never sends.",
     marked_done: "Marked as done", deleted: "Deleted. Really gone, no archive.", thanks: "Thanks, noted.",
-    confirm_delete: "Delete this case? It is really deleted, together with the photo. No undo.",
+    confirm_delete: "Delete this case, its generated files, and its app-managed photo? No archive, no undo.",
     failed: "Something failed",
-    ago: "{n} d. ago", today_short: "today", tomorrow_short: "tomorrow", in_days: "in {n} d.",
+    ago: "{n}d ago", today_short: "today", tomorrow_short: "tomorrow", in_days: "in {n}d",
     was: "was {d}", now: "now {d}", replaced: "replaced by a later note", updated: "updated from a later note",
     steps: {
       check_photo: "photo ok", read_note: "read", extract_actions: "dates", match_case: "case",
@@ -56,11 +56,12 @@ const T = {
       not_found: "Case not found", empty_photo: "The photo arrived empty", too_large: "The photo is too large",
       bad_format: "Unsupported photo format", bad_answer: "Invalid answer", no_photo: "No photo", no_job: "Upload not found",
       bad_settings: "Those settings are not valid", bad_calendar: "That month does not exist",
+      upload_limit: "The judging demo has reached its hourly upload limit. Try again later.",
       no_agentcore: "AgentCore is not configured", agentcore_failed: "AgentCore did not answer",
     },
     notification_title: "Papelito",
     away_kicker: "While you were away",
-    away_never: "Papelito has not checked the open cases yet. The daily timer does that with the phone face down.",
+    away_never: "Papelito has not checked the open cases yet. The daily timer does that on its own, even with the phone face down.",
     away_quiet: "Papelito looked at {n} open case(s). Nothing new to nag about.",
     away_nagged: "Papelito looked at {n} open case(s) and left {k} reminder(s).",
     away_run: "Check now",
@@ -72,7 +73,7 @@ const T = {
     child_saved: "This paper is {n}'s", child_cleared: "Name taken off this paper",
 
     board_title: "The board",
-    board_lead: "Every paper that came in. A notice hangs quietly, a paper that asks for something carries its date.",
+    board_lead: "Every paper that came in. A notice hangs quietly; a paper that asks for something carries its date.",
     board_empty: "No paper on the board yet. Photograph one.",
     board_notice: "notice", board_action: "to do",
     board_no_text: "No German text saved.",
@@ -81,7 +82,7 @@ const T = {
     cal_key_due: "due or overdue", cal_key_open: "later",
     cal_pick_day: "Tap a day to see what is on it.",
     cal_day_empty: "Nothing on this day.",
-    cal_offline: "The month is not there yet. The list and the calendar file still work.",
+    cal_offline: "The month view is not available yet. The list and the calendar file still work.",
     cal_months: ["January", "February", "March", "April", "May", "June",
                  "July", "August", "September", "October", "November", "December"],
     cal_months_short: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
@@ -95,9 +96,9 @@ const T = {
     s_no_children: "No child yet. Add one and you can say which paper belongs to whom.",
     s_child_name: "Name", s_kg: "Kindergarten",
     s_add: "Add", s_remove: "Remove", s_save: "Save", s_saved: "Saved",
-    s_confirm_remove: "Remove {n}? The papers stay, they only lose the name.",
+    s_confirm_remove: "Remove {n}? The papers stay; they only lose the name.",
     s_need_name: "A child needs a name.",
-    s_privacy: "This stays on your own server. Nothing here is sent anywhere.",
+    s_privacy: "Saved on your own server. Photos go only to the vision model; approved names go only to the text model for the German draft.",
     s_offline: "Settings could not be saved.",
   },
   de: {
@@ -112,7 +113,7 @@ const T = {
       ["bis wann", "die Frist, dahinter der deutsche Satz, aus dem sie stammt"],
       ["erledigt", "was Papelito schon gemacht hat: Kalendereintrag, deutsche Antwort, Erinnerung zwei Tage vorher"],
     ],
-    empty_note: "Eine zweite Mitteilung zum selben Ereignis aktualisiert den Akt statt einen neuen anzulegen. Ohne dich wird nichts verschickt.",
+    empty_note: "Eine zweite Mitteilung zum selben Ereignis aktualisiert den Akt statt einen neuen anzulegen. Papelito verschickt die Antwort nie selbst.",
     show_done: "Erledigte zeigen", hide_done: "Erledigte ausblenden",
     shoot: "Fotografieren", upload: "Foto hochladen",
     received: "erhalten {d}",
@@ -131,7 +132,7 @@ const T = {
     saved: "Akt gespeichert", amended: "Akt aus dieser Mitteilung aktualisiert: {n} Zeile(n) ersetzt",
     copied: "Antwort kopiert. Füge sie in Mail oder Nachricht ein und schick sie selbst. Papelito sendet nie.",
     marked_done: "Als erledigt markiert", deleted: "Gelöscht. Wirklich weg, kein Archiv.", thanks: "Danke, notiert.",
-    confirm_delete: "Diesen Akt löschen? Er wird wirklich gelöscht, samt Foto. Kein Zurück.",
+    confirm_delete: "Diesen Akt, seine erzeugten Dateien und sein verwaltetes Foto löschen? Kein Archiv, kein Zurück.",
     failed: "Etwas ist schiefgegangen",
     ago: "vor {n} T.", today_short: "heute", tomorrow_short: "morgen", in_days: "in {n} T.",
     was: "war {d}", now: "neu {d}", replaced: "durch spätere Mitteilung ersetzt", updated: "aus späterer Mitteilung aktualisiert",
@@ -144,6 +145,7 @@ const T = {
       not_found: "Akt nicht gefunden", empty_photo: "Das Foto kam leer an", too_large: "Das Foto ist zu groß",
       bad_format: "Fotoformat nicht unterstützt", bad_answer: "Ungültige Antwort", no_photo: "Kein Foto", no_job: "Upload nicht gefunden",
       bad_settings: "Diese Einstellungen gehen nicht", bad_calendar: "Diesen Monat gibt es nicht",
+      upload_limit: "Die Demo für die Jury hat ihr stündliches Upload-Limit erreicht. Versuche es später erneut.",
       no_agentcore: "AgentCore ist nicht eingerichtet", agentcore_failed: "AgentCore hat nicht geantwortet",
     },
     notification_title: "Papelito",
@@ -185,7 +187,7 @@ const T = {
     s_add: "Hinzufügen", s_remove: "Entfernen", s_save: "Speichern", s_saved: "Gespeichert",
     s_confirm_remove: "{n} entfernen? Die Papiere bleiben, nur der Name geht weg.",
     s_need_name: "Ein Kind braucht einen Namen.",
-    s_privacy: "Bleibt auf deinem eigenen Server. Von hier geht nichts weg.",
+    s_privacy: "Auf deinem eigenen Server gespeichert. Fotos gehen nur ans Bildmodell, freigegebene Namen nur ans Textmodell für den deutschen Entwurf.",
     s_offline: "Einstellungen konnten nicht gespeichert werden.",
   },
 };
@@ -239,6 +241,7 @@ const pinTpl = document.getElementById("pin-tpl");
 let includeDone = false;
 let notified = new Set(load(NOTIFIED_KEY, []));
 let lastData = null;
+const agentcoreRuns = new Map();
 let liveJob = null; /* {job, steps, state} while a photo is being read */
 
 let view = viewFromHash();
@@ -484,7 +487,16 @@ function buildSlip(c) {
   }
 
   const ac = node.querySelector('[data-act="agentcore"]');
-  if (ac) ac.hidden = !(lastData && lastData.agentcore && c.id === "demo-ausflug");
+  if (ac) {
+    ac.hidden = !(lastData && lastData.agentcore && c.id === "demo-ausflug");
+    const run = agentcoreRuns.get(`${c.id}:${lang}`);
+    ac.disabled = Boolean(run && run.pending);
+    if (run && run.text) {
+      node.querySelector('[data-f="ac-badge"]').textContent = t("ac_badge");
+      node.querySelector('[data-f="ac-card"]').textContent = run.text;
+      node.querySelector('[data-f="ac"]').hidden = false;
+    }
+  }
   return node;
 }
 
@@ -1213,22 +1225,23 @@ listEl.addEventListener("click", async (event) => {
   }
 
   if (act === "agentcore") {
+    const key = `${id}:${lang}`;
+    if (agentcoreRuns.get(key)?.pending) return;
+    const run = { pending: true, text: "" };
+    agentcoreRuns.set(key, run);
     toast(t("ac_wait"), 8000);
     button.disabled = true;
     try {
       const body = await json(withLang("/api/demo/agentcore"), { method: "POST" });
-      const panel = slip.querySelector('[data-f="ac"]');
-      const badge = slip.querySelector('[data-f="ac-badge"]');
-      const card = slip.querySelector('[data-f="ac-card"]');
       const result = body.result || body;
-      badge.textContent = t("ac_badge");
-      card.textContent = (result.card && result.card.text) || JSON.stringify(result, null, 2);
-      panel.hidden = false;
+      run.text = (result.card && result.card.text) || JSON.stringify(result, null, 2);
       toast(t("ac_badge"), 5000);
     } catch (err) {
       toast(err.message || t("ac_fail"));
+    } finally {
+      run.pending = false;
+      render(lastData);
     }
-    button.disabled = false;
   }
 });
 

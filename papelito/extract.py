@@ -5,7 +5,7 @@ The model proposes; deterministic checks (date resolution, amount regex,
 source-line lookup) verify and may lower the confidence. Gate:
 
     confidence >= ASK_BELOW   -> artifact is created
-    DROP_BELOW <= c < ASK     -> show the crop, ask one question, no guess
+    DROP_BELOW <= c < ASK     -> show the source line, ask one question, no guess
     c < DROP_BELOW            -> no artifact, listed as unreadable
 
 Works without a model too (regex heuristics), which is the test path and the
@@ -17,9 +17,12 @@ from __future__ import annotations
 import difflib
 import hashlib
 import json
+import logging
 import re
 from datetime import date, timedelta
 from typing import Any
+
+_LOG = logging.getLogger(__name__)
 
 ASK_BELOW = 0.75
 DROP_BELOW = 0.4
@@ -54,7 +57,8 @@ def _to_date(value: str | date) -> date:
 
 def _local_resolve(phrase: str, received_on: date) -> str | None:
     """Deterministic German date phrase → ISO date. No LLM. Returns None when unsure."""
-    p = phrase.lower().strip()
+    raw_phrase = phrase.strip()
+    p = raw_phrase.lower()
     m = _RE_NUMERIC.search(p)
     if m:
         d, mo, y = int(m.group(1)), int(m.group(2)), m.group(3)
@@ -109,6 +113,9 @@ def _local_resolve(phrase: str, received_on: date) -> str | None:
         return (received_on + timedelta(days=(7 - received_on.weekday()) % 7 or 7)).isoformat()
     for word in re.findall(r"[a-zäöü]+", p):
         if word in _WEEKDAYS:
+            # ``Fr. Huber`` is the common honorific Frau, not Friday.
+            if word == "fr" and re.search(r"\bFr\.\s+[A-ZÄÖÜ]", raw_phrase):
+                continue
             target = _WEEKDAYS[word]
             delta = (target - received_on.weekday()) % 7
             if delta == 0 and ("nächst" in p or "naechst" in p or "kommend" in p):
@@ -155,7 +162,8 @@ def weekday_conflict(phrase: str | None, iso: str | None) -> bool:
 
 # ---------------------------------------------------------------- amounts
 _RE_AMOUNT = re.compile(
-    r"(?:€\s?(\d{1,4}(?:[.,]\d{1,2})?))|(?:(\d{1,4}(?:[.,]\d{1,2})?)\s?(?:€|euro|eur\b))", re.IGNORECASE
+    r"(?:€\s?(\d{1,4}(?:[.,](?:\d{1,2}|-))?))|(?:(\d{1,4}(?:[.,](?:\d{1,2}|-))?)\s?(?:€|euro|eur\b))",
+    re.IGNORECASE,
 )
 
 
@@ -164,6 +172,7 @@ def find_amount(text: str) -> float | None:
     if not m:
         return None
     raw = m.group(1) or m.group(2)
+    raw = re.sub(r"[.,]-$", "", raw)
     return float(raw.replace(",", "."))
 
 
@@ -205,10 +214,12 @@ def best_source_line(claimed: str, text: str) -> tuple[str, float]:
         return claimed, 0.0
     if not claimed:
         return lines[0], 0.0
-    c = claimed.strip().lower()
+    exact = claimed.strip()
+    c = exact.lower()
     for ln in lines:
-        if c and c in ln.lower():
-            return ln, 1.0
+        start = ln.lower().find(c) if c else -1
+        if start >= 0:
+            return ln[start:start + len(exact)], 1.0
     # Model may have joined two lines; try pairs.
     pairs = [f"{a} {b}" for a, b in zip(lines, lines[1:])]
     best, best_r = lines[0], 0.0
@@ -229,6 +240,29 @@ _EVENT_WORDS = (
     "feier", "fotograf", "elternsprechtag", "eingewöhnung", "theater", "besuch", "abschlussfest",
 )
 
+_SENDER_HEADER = re.compile(
+    r"^(?:kindergarten|kindergruppe|hort|volksschule|schule|gemeinde|"
+    r"magistrat(?:sabteilung)?|ma\s*\d+|bezirksamt|elternverein|ordination|praxis|dr\.)\b",
+    re.IGNORECASE,
+)
+_SENDER_SENTENCE_WORDS = re.compile(
+    r"\b(?:am|bis|findet|geschlossen|bleibt|wegen|bitte|ist|sind|war|wird|werden|"
+    r"liebe|unser|unsere|wir)\b",
+    re.IGNORECASE,
+)
+
+
+def _heuristic_sender(lines: list[str]) -> str | None:
+    """Return a clear institution header, never an arbitrary first sentence."""
+    if not lines:
+        return None
+    candidate = lines[0].strip()
+    if len(candidate.split()) > 8 or candidate.endswith((".", "!", "?")):
+        return None
+    if _SENDER_SENTENCE_WORDS.search(candidate):
+        return None
+    return candidate if _SENDER_HEADER.match(candidate) else None
+
 
 def _heuristic_extract(text: str, received_on: date) -> dict[str, Any]:
     lines = note_lines(text)
@@ -240,7 +274,7 @@ def _heuristic_extract(text: str, received_on: date) -> dict[str, Any]:
         if word in low:
             title = word.capitalize()
             break
-    sender = lines[0] if lines else None
+    sender = _heuristic_sender(lines)
     sender_type = "kindergarten"
     for st, keys in (("gemeinde", ("gemeinde", "magistrat", "ma ", "bezirksamt", "meldezettel")),
                      ("arzt", ("praxis", "dr.", "ordination", "arzt", "ärztin", "impf")),
@@ -311,17 +345,58 @@ def _parse_json(raw: str) -> dict[str, Any] | None:
     start = raw.find("{")
     end = raw.rfind("}")
     if start < 0 or end < 0:
+        _LOG.warning("extract_model_invalid_json reason=no_object")
         return None
     try:
-        return json.loads(raw[start:end + 1])
+        parsed = json.loads(raw[start:end + 1])
     except json.JSONDecodeError:
+        _LOG.warning("extract_model_invalid_json reason=json_decode")
         return None
+    if not isinstance(parsed, dict):
+        _LOG.warning("extract_model_invalid_json reason=wrong_shape")
+        return None
+    return parsed
+
+
+def _numeric_status_code(exc: Exception) -> int | None:
+    """Read a provider status without rendering the exception or response."""
+    sources: tuple[Any, ...] = (exc, getattr(exc, "response", None))
+    for source in sources:
+        if source is None:
+            continue
+        try:
+            value = getattr(source, "status_code", None)
+        except Exception:
+            continue
+        if isinstance(value, int) and not isinstance(value, bool):
+            return value
+        if isinstance(value, str) and value.isdecimal():
+            return int(value)
+    return None
+
+
+def _log_model_error(exc: Exception) -> None:
+    status_code = _numeric_status_code(exc)
+    if status_code is None:
+        _LOG.warning("extract_model_error error_class=%s", type(exc).__name__)
+    else:
+        _LOG.warning(
+            "extract_model_error error_class=%s status_code=%d",
+            type(exc).__name__,
+            status_code,
+        )
 
 
 def _model_extract(text: str, received_on: date, model: Any) -> dict[str, Any] | None:
     from strands import Agent
 
-    agent = Agent(model=model, system_prompt=_SYSTEM % received_on.isoformat(), callback_handler=None, name="papelito-extract")
+    agent = Agent(
+        model=model,
+        system_prompt=_SYSTEM % received_on.isoformat(),
+        callback_handler=None,
+        name="papelito-extract",
+        retry_strategy=None,
+    )
     result = agent(f"Note received {received_on.isoformat()}:\n\n{text}")
     return _parse_json(str(result))
 
@@ -338,7 +413,11 @@ def _verify(raw: dict[str, Any], text: str, received_on: date, from_model: bool)
         if sim < 0.6:
             conf = min(conf, 0.5)
             flags.append("source_line_not_found")
-        phrase = a.get("deadline_phrase") or line
+        if kind == "bring" and find_amount(line) is not None:
+            kind = "pay"
+            flags.append("kind_normalized_from_money")
+        claimed_phrase = str(a.get("deadline_phrase") or "").strip()
+        phrase = claimed_phrase if claimed_phrase and claimed_phrase.casefold() in line.casefold() else line
         dated_kind = kind in ("reply", "pay", "attend", "closed")
         det = resolve_date(phrase, received_on) or (resolve_date(line, received_on) if dated_kind else None)
         if not det and dated_kind:  # date on the neighbouring printed line: quote both lines as the source
@@ -346,7 +425,10 @@ def _verify(raw: dict[str, Any], text: str, received_on: date, from_model: bool)
             if ext:
                 line, det = ext, resolve_date(ext, received_on)
         model_iso = a.get("deadline_iso")
-        deadline = det or model_iso
+        # A model date is only a proposal. Keep it only when the quoted phrase
+        # or verified source line resolves deterministically; otherwise the
+        # card must show no date instead of laundering a guess through a gate.
+        deadline = det
         if det and model_iso and det != model_iso:
             conf = min(conf, 0.6)
             flags.append("date_mismatch")
@@ -391,22 +473,21 @@ def _verify(raw: dict[str, Any], text: str, received_on: date, from_model: bool)
             "question": question_code(flags) if gate_for(conf) == "ask" else None,
         })
     meta_sender_type = raw.get("sender_type") if raw.get("sender_type") in SENDER_TYPES else "kindergarten"
-    event_date = raw.get("event_date")
-    if event_date and not any(a["kind"] == "attend" for a in out_actions):
+    proposed_event_date = raw.get("event_date")
+    if proposed_event_date and not any(a["kind"] == "attend" for a in out_actions):
         # The event itself must land in the calendar even if the model only listed the chores around it.
-        src = next((ln for ln in note_lines(text) if resolve_date(ln, received_on) == event_date), None)
+        src = next((ln for ln in note_lines(text) if resolve_date(ln, received_on) == proposed_event_date), None)
         if src:
-            conf = 0.8 if not weekday_conflict(src, event_date) else 0.7
+            conf = 0.8 if not weekday_conflict(src, proposed_event_date) else 0.7
             out_actions.insert(0, {
-                "kind": "attend", "action": str(raw.get("title") or "Termin"), "deadline_iso": event_date, "amount": None,
+                "kind": "attend", "action": str(raw.get("title") or "Termin"), "deadline_iso": proposed_event_date, "amount": None,
                 "source_line": src, "confidence": conf, "flags": ["attend_added_from_event_date"],
                 "gate": gate_for(conf), "question": "date" if gate_for(conf) == "ask" else None,
             })
-    if not event_date:
-        for a in out_actions:
-            if a["kind"] == "attend" and a["deadline_iso"]:
-                event_date = a["deadline_iso"]
-                break
+    event_date = next(
+        (a["deadline_iso"] for a in out_actions if a["kind"] == "attend" and a["deadline_iso"]),
+        None,
+    )
     return {
         "paper_id": paper_id_for(text),
         "title": (raw.get("title") or "Kindergarten").strip(),
@@ -445,7 +526,8 @@ def extract(text: str, received_on: str | date, model: Any = None) -> dict[str, 
         try:
             raw = _model_extract(text, rec, model)
             from_model = raw is not None
-        except Exception:
+        except Exception as exc:
+            _log_model_error(exc)
             raw = None
     if raw is None:
         raw = _heuristic_extract(text, rec)

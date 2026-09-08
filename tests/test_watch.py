@@ -171,7 +171,42 @@ class WatchTests(unittest.TestCase):
             "amount": 8,
         }
         text = compose_reminder(case, date(2026, 9, 10), "English")
-        self.assertEqual(text, "Tomorrow: 8 € for the Ausflug, cash, Fr. Huber.")
+        self.assertEqual(text, "Tomorrow: 8 € for the Ausflug, Fr. Huber.")
+
+    def test_reminder_does_not_invent_cash_payment(self):
+        for instruction in ("Transfer 8 Euro", "Pay 8 €", "Pay by bank transfer, not cash", "8 Euro bargeldlos bezahlen"):
+            with self.subTest(instruction=instruction):
+                case = {"id": "payment", "title": "Outing", "actions": [
+                    {"action": instruction, "amount": 8, "deadline_iso": "2026-09-12"}
+                ]}
+                text = compose_reminder(case, date(2026, 9, 10), "English")
+                self.assertNotIn(", cash", text)
+
+    def test_reminder_preserves_explicit_cash_payment(self):
+        for instruction in ("Pay 8 Euro in cash", "8 Euro bar mitgeben"):
+            with self.subTest(instruction=instruction):
+                case = {"id": "payment", "title": "Outing", "actions": [
+                    {"action": instruction, "amount": 8, "deadline_iso": "2026-09-12"}
+                ]}
+                self.assertIn(", cash", compose_reminder(case, date(2026, 9, 10), "English"))
+
+    def test_unconfirmed_deadline_cannot_close_or_nag_case(self):
+        store = MemoryStore([{"id": "uncertain", "deadline": "2026-09-01", "actions": [
+            {"action": "Confirm attendance", "deadline_iso": "2026-09-01", "status": "pending"}
+        ]}])
+        report = run_watch(store, today="2026-09-10", notify=False)
+        self.assertEqual(report.reminders, [])
+        self.assertNotEqual(store.cases["uncertain"].get("status"), "closed")
+
+    def test_pending_deadline_does_not_override_confirmed_action(self):
+        store = MemoryStore([{"id": "mixed", "actions": [
+            {"action": "Uncertain payment", "deadline_iso": "2026-09-01", "status": "pending"},
+            {"action": "Confirm attendance", "deadline_iso": "2026-09-12", "status": "active"}
+        ]}])
+        report = run_watch(store, today="2026-09-10", notify=False)
+        self.assertEqual(len(report.reminders), 1)
+        self.assertEqual(report.reminders[0].kind, "due")
+        self.assertIn("Confirm attendance", report.reminders[0].text)
 
 
 class RealStoreWatchTests(unittest.TestCase):

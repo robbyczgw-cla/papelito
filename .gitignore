@@ -1,6 +1,9 @@
 .venv/
 .env
 .env.local
+.devpost-hackathon-state.json
+.fable-hosting-review/
+devpost-submission.md
 *.db
 *.zip
 data/watchdog-last.json
@@ -17,3 +20,12 @@ runtime/agentcore/cdk/cdk.out/
 runtime/agentcore/Papelito.zip
 runtime/**/staging/
 runtime/**/.venv/
+
+### backup-managed ###
+node_modules/
+.next/
+dist/
+build/
+*.log
+.DS_Store
+### end backup-managed ###

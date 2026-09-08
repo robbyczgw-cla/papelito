@@ -15,6 +15,7 @@ import argparse
 import json
 import logging
 import os
+import re
 import sys
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -272,7 +273,7 @@ def _active_actions(case: Any) -> list[Any]:
     out = []
     for action in actions:
         status = str(_field(action, "status") or "active").lower()
-        if status in {"superseded", "done", "replied", "closed"}:
+        if status != "active":
             continue
         out.append(action)
     return out
@@ -288,7 +289,7 @@ def _nearest_action(case: Any) -> tuple[date | None, Any | None]:
         if nearest is None or deadline < nearest:
             nearest = deadline
             chosen = action
-    if nearest is None:
+    if nearest is None and not _field(case, "actions"):
         nearest = _as_date(_field(case, "deadline", "deadline_iso", "due_date", "event_date"))
     return nearest, chosen
 
@@ -315,8 +316,12 @@ def _amount_text(amount: Any) -> str:
 
 
 def _is_cash(action_text: str, amount_text: str) -> bool:
-    blob = f"{action_text} {amount_text}".lower()
-    return any(w in blob for w in ("€", "euro", "bar", "cash", "bargeld"))
+    # Currency alone says nothing about the payment method. Only repeat an
+    # explicit instruction; ambiguous or negated wording must not add cash.
+    blob = action_text.casefold()
+    if re.search(r"\b(?:not|no|without|nicht|kein\w*|ohne)\b", blob):
+        return False
+    return bool(re.search(r"\b(?:bar|cash|bargeld)\b", blob))
 
 
 def _detail(case: Any, action: Any | None, lang: str) -> str:

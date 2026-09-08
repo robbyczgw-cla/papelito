@@ -87,6 +87,93 @@ def test_verify_drops_unknown_source_line():
     assert "source_line_not_found" in a["flags"] and a["gate"] != "ok"
 
 
+def test_verify_rejects_model_deadline_without_date_evidence():
+    text = "Bitte an Fr. Huber abgeben."
+    raw = {"actions": [{
+        "kind": "info",
+        "action": "Bei Fr. Huber abgeben",
+        "deadline_phrase": "",
+        "deadline_iso": "2026-09-04",
+        "source_line": text,
+        "confidence": 0.96,
+    }]}
+    action = X._verify(raw, text, X._to_date("2026-09-01"), True)["actions"][0]
+    assert action["deadline_iso"] is None
+    assert "date_unverified" in action["flags"]
+    assert action["gate"] == "ask"
+
+
+def test_verify_keeps_model_deadline_backed_by_absolute_source_date():
+    text = "Bitte am 04.09.2026 an Fr. Huber abgeben."
+    raw = {"actions": [{
+        "kind": "info",
+        "action": "Bei Fr. Huber abgeben",
+        "deadline_phrase": "04.09.2026",
+        "deadline_iso": "2026-09-04",
+        "source_line": text,
+        "confidence": 0.96,
+    }]}
+    action = X._verify(raw, text, X._to_date("2026-09-01"), True)["actions"][0]
+    assert action["deadline_iso"] == "2026-09-04"
+    assert "date_unverified" not in action["flags"]
+    assert action["gate"] == "ok"
+
+
+def test_verify_normalizes_money_bring_action_to_pay_and_drafts_reply(tmp_path, monkeypatch):
+    text = "Bitte geben Sie Ihrem Kind bis Montag 8 Euro in einem beschrifteten Kuvert mit."
+    raw = {"actions": [{
+        "kind": "bring",
+        "action": "8 Euro in einem Kuvert mitgeben",
+        "deadline_phrase": "bis Montag",
+        "deadline_iso": "2026-09-07",
+        "amount_eur": 8,
+        "source_line": text,
+        "confidence": 0.96,
+    }]}
+    action = X._verify(raw, text, X._to_date("2026-09-01"), True)["actions"][0]
+    assert action["kind"] == "pay"
+    assert action["amount"] == 8.0
+    assert action["deadline_iso"] == "2026-09-07"
+    assert "kind_normalized_from_money" in action["flags"]
+    assert A.needs_reply({"actions": [{**action, "status": "active"}]})
+
+    monkeypatch.setenv("PAPELITO_OUT", str(tmp_path / "out"))
+    store = Store(tmp_path / "money.db")
+    case_id = store.save_case({
+        "title": "Ausflug in den Tiergarten",
+        "sender": "Fr. Huber",
+        "papers": [{"received_on": "2026-09-01", "text": text}],
+        "actions": [{**action, "status": "active"}],
+    })
+    A.configure(
+        store=store,
+        profile={"child_name": "Mateo", "parent_name": "Lucía García", "language": "en"},
+        use_models=False,
+    )
+    drafted = A.draft_reply(case_id=case_id)
+    assert drafted.get("text")
+    assert "skipped" not in drafted
+    assert (tmp_path / "out" / f"{case_id}-antwort.txt").is_file()
+    store.close()
+
+
+def test_verify_keeps_non_payment_packing_action_as_bring():
+    text = "Bitte geben Sie Ihrem Kind 8 Trinkflaschen mit."
+    raw = {"actions": [{
+        "kind": "bring",
+        "action": "8 Trinkflaschen mitgeben",
+        "deadline_phrase": "",
+        "deadline_iso": None,
+        "amount_eur": None,
+        "source_line": text,
+        "confidence": 0.96,
+    }]}
+    action = X._verify(raw, text, X._to_date("2026-09-01"), True)["actions"][0]
+    assert action["kind"] == "bring"
+    assert action["amount"] is None
+    assert "kind_normalized_from_money" not in action["flags"]
+
+
 def test_weekday_conflict_lowers_confidence():
     note = "Elternabend am Mittwoch, 17.09.2026 um 18:30 Uhr."
     a = X.extract(note, RECEIVED)["actions"][0]
@@ -120,6 +207,91 @@ def test_store_roundtrip_and_real_delete(store):
         assert con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] == 0, table
     assert con.execute("PRAGMA secure_delete").fetchone()[0] in (0, 1)  # pragma exists
     assert not store.delete_case(cid)
+
+
+def test_delete_removes_only_exact_case_owned_files(store, tmp_path, monkeypatch):
+    import papelito.store as store_module
+
+    private = tmp_path / "private"
+    output = tmp_path / "out"
+    private.mkdir()
+    output.mkdir()
+    monkeypatch.setattr(store_module, "PRIVATE_PHOTO_ROOT", private)
+    monkeypatch.setenv("PAPELITO_OUT", str(output))
+
+    original = private / "original.png"
+    crop = private / "crop.png"
+    shared = private / "shared.png"
+    outside = tmp_path / "outside.png"
+    for path in (original, crop, shared, outside):
+        path.write_bytes(path.name.encode())
+
+    case_id = "case-delete"
+    store.save_case({
+        "id": case_id,
+        "title": "Ausflug",
+        "papers": [
+            {"received_on": RECEIVED, "photo_path": str(original), "text": "Original"},
+            {"received_on": "2026-09-04", "photo_path": str(crop), "text": "Crop"},
+            {"received_on": "2026-09-05", "photo_path": str(shared), "text": "Shared"},
+            {"received_on": "2026-09-06", "photo_path": str(outside), "text": "Outside"},
+        ],
+    })
+    store.save_case({
+        "id": "case-shared",
+        "title": "Elternabend",
+        "papers": [{"received_on": RECEIVED, "photo_path": str(shared), "text": "Shared"}],
+    })
+
+    calendar = output / f"{case_id}.ics"
+    reply = output / f"{case_id}-antwort.txt"
+    neighbour = output / f"{case_id}-extra.ics"
+    for path in (calendar, reply, neighbour):
+        path.write_text(path.name, encoding="utf-8")
+
+    assert store.delete_case(case_id)
+    assert not original.exists()
+    assert not crop.exists()
+    assert shared.exists()
+    assert outside.exists()
+    assert not calendar.exists()
+    assert not reply.exists()
+    assert neighbour.exists()
+    assert store.delete_case("case-shared")
+    assert not shared.exists()
+
+
+def test_cli_delete_removes_exact_outputs(tmp_path, monkeypatch):
+    import papelito.store as store_module
+    from papelito.cli import main
+
+    private = tmp_path / "private"
+    output = tmp_path / "out"
+    private.mkdir()
+    output.mkdir()
+    monkeypatch.setattr(store_module, "PRIVATE_PHOTO_ROOT", private)
+    monkeypatch.setenv("PAPELITO_OUT", str(output))
+
+    db = tmp_path / "cli.db"
+    case_id = "cli-delete"
+    photo = private / "note.png"
+    photo.write_bytes(b"note")
+    created = Store(db)
+    created.save_case({
+        "id": case_id,
+        "title": "Ausflug",
+        "papers": [{"received_on": RECEIVED, "photo_path": str(photo), "text": "Note"}],
+    })
+    created.close()
+    calendar = output / f"{case_id}.ics"
+    reply = output / f"{case_id}-antwort.txt"
+    calendar.write_text("calendar", encoding="utf-8")
+    reply.write_text("reply", encoding="utf-8")
+
+    assert main(["delete", "--db", str(db), case_id]) == 0
+    assert not photo.exists()
+    assert not calendar.exists()
+    assert not reply.exists()
 
 
 # -------------------------------------------------------------- amendment
@@ -307,3 +479,31 @@ def test_info_do_column_quotes_german_for_non_german_readers():
     assert "Ruhephase" in en
     translated = E.action_line(action, "en", translated="Rest period from 12:45 to 13:45")
     assert translated == "Rest period from 12:45 to 13:45"
+
+
+def test_model_translation_covers_reader_title_and_actions(monkeypatch):
+    import strands
+
+    class FakeAgent:
+        def __init__(self, **_kwargs):
+            pass
+
+        def __call__(self, _payload):
+            return '{"0":"Bring rain boots","__title__":"Outing to the zoo"}'
+
+    monkeypatch.setattr(strands, "Agent", FakeAgent)
+    card = E.explain_in("en", {
+        "id": "translated-card",
+        "title": "Ausflug in den Tiergarten",
+        "actions": [{
+            "id": "boots",
+            "kind": "bring",
+            "action": "Gummistiefel mitbringen",
+            "source_line": "Bitte Gummistiefel mitbringen.",
+            "status": "active",
+            "confidence": 0.99,
+        }],
+    }, model=object())
+
+    assert card["title"] == "Outing to the zoo"
+    assert card["rows"][0]["do"] == "Bring: Bring rain boots"

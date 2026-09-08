@@ -325,6 +325,30 @@ class WriteIcsTests(unittest.TestCase):
         ics = write_ics(case, now=NOW)
         self.assertEqual(len(components(ics, "VEVENT")), 1)
 
+    def test_skips_superseded_amendment_event(self):
+        case = {
+            "id": "amended-outing",
+            "title": "Ausflug",
+            "actions": [
+                {
+                    "action": "Ausflug am Mittwoch",
+                    "deadline_iso": "2026-09-09",
+                    "status": "superseded",
+                },
+                {
+                    "action": "Ausflug am Freitag",
+                    "deadline_iso": "2026-09-11",
+                    "status": "active",
+                },
+            ],
+        }
+
+        ics = write_ics(case, now=NOW)
+
+        self.assertEqual(len(components(ics, "VEVENT")), 1)
+        self.assertNotIn("DTSTART;VALUE=DATE:20260909", ics)
+        self.assertIn("DTSTART;VALUE=DATE:20260911", ics)
+
     @patch("papelito.ics.UID_HOST", "example.invalid")
     def test_uid_contains_case_and_action(self):
         uid = event_uid("case-elternabend-1", "RSVP")

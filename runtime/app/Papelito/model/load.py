@@ -13,7 +13,7 @@ IDENTITY_ENV_VAR = "PAPELITO_ZEN_KEY"
 
 
 def _env_key() -> str:
-    for name in ("PAPELITO_ZEN_KEY", "ZEN_API_KEY", "OPENAI_API_KEY", IDENTITY_ENV_VAR):
+    for name in ("PAPELITO_ZEN_KEY", "ZEN_API_KEY"):
         value = os.environ.get(name, "").strip()
         if value:
             return value

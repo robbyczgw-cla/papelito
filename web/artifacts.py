@@ -6,7 +6,7 @@ stubs so the page stays tappable; they never send anything.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from web.store import parse_date
 
@@ -55,19 +55,20 @@ def ics_for(case: dict) -> str:
             from papelito.ics import write_ics  # type: ignore
 
             text = write_ics(case["_raw"])
-            if text and "BEGIN:VEVENT" in str(text):
+            if text and "BEGIN:VCALENDAR" in str(text):
                 return str(text)
         except Exception:
             pass
 
-    stamp = datetime.now().strftime("%Y%m%dT%H%M%SZ")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
         "PRODID:-//Papelito//web//EN",
         "CALSCALE:GREGORIAN",
     ]
-    rows = [r for r in case.get("rows", []) if r["status"] != "superseded"]
+    rows = [r for r in case.get("rows", [])
+            if r.get("status", "active") == "active" and r.get("gate", "ok") == "ok"]
     for n, row in enumerate(rows, start=1):
         day = parse_date(row.get("deadline"))
         if not day:

@@ -5,7 +5,7 @@
 
 ``add`` prints the card as four columns: what / do / by when / done-for-you.
 The fourth column fills with checkmarks as the tools run. A low-confidence
-date or amount shows the source crop and asks one question; unanswered, the
+date or amount shows the source line and asks one question; unanswered, the
 item gets no artifact.
 """
 
@@ -177,7 +177,7 @@ def _parse_date(s: str, received_on: str) -> str | None:
 
 
 def ask_questions(sess: dict[str, Any], lang: str, assume_no: bool) -> None:
-    """Confidence gate: one question per unclear item, with the crop. Unanswered → no artifact."""
+    """Confidence gate: one question per unclear item, with its source line. Unanswered → no artifact."""
     ext = sess["extraction"]
     for a in ext["actions"]:
         if a["gate"] != "ask":

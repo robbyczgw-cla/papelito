@@ -17,6 +17,7 @@ def main() -> int:
     os.environ["PAPELITO_DB"] = os.path.join(tmp, "cases.db")
     os.environ["PAPELITO_WATCH_LOG"] = os.path.join(tmp, "watchdog-last.json")
     os.environ["PAPELITO_AGENTCORE_OFF"] = "1"
+    os.environ["PAPELITO_TODAY"] = "2026-09-03"
 
     from fastapi.testclient import TestClient
 
@@ -37,36 +38,35 @@ def main() -> int:
     seeded = client.post("/api/demo/seed").json()
     cases = seeded["cases"]
     states = [c["state"] for c in cases]
-    check("seed", len(cases) == 4, f"{len(cases)} cases via {seeded['backend']}")
-    check("due first", states == sorted(states, key=["overdue", "due", "open", "replied"].index),
-          " ".join(states))
+    check("seed", len(cases) == 2, f"{len(cases)} cases via {seeded['backend']}")
+    check("seed starts open", states == ["open", "open"], " ".join(states))
     check("four columns", all(len(c["labels"]) == 4 for c in cases))
     default_cases = client.get("/api/cases").json()
     german_cases = client.get("/api/cases?lang=de").json()
     check("english default", seeded["lang"] == "en" and default_cases["lang"] == "en"
-          and any(c["reminder"] == "Did you send the reply?" for c in default_cases["cases"]))
+          and all(not c["reminder"] for c in default_cases["cases"]))
     ac = client.get("/api/demo/agentcore").json()
     check("agentcore status", ac.get("enabled") is False and ac.get("region") == "eu-central-1",
           str(ac))
     check("agentcore off", client.post("/api/demo/agentcore").status_code == 503)
-    check("german overdue", any(c["reminder"] == "Hast du die Antwort geschickt?" for c in german_cases["cases"]))
-    watched = client.post("/api/watch").json().get("away") or {}
-    check("watch writes last run", bool(watched.get("ran_at")) and int(watched.get("checked") or 0) >= 1,
+    check("german starts quiet", all(not c["reminder"] for c in german_cases["cases"]))
+    watched_payload = client.post("/api/watch?today=2026-09-05&lang=en").json()
+    watched = watched_payload.get("away") or {}
+    check("watch writes last run", bool(watched.get("ran_at")) and int(watched.get("checked") or 0) == 2,
           f"checked={watched.get('checked')} ran_at={watched.get('ran_at')}")
-    check("confidence gate", any(c["question"] for c in cases))
+    check("one two-day reminder", [item.get("case_id") for item in watched.get("nagged") or []]
+          == ["demo-ausflug"])
+    check("seed needs no confidence answer", all(not c["question"] for c in cases))
     check("source sentence", all(any(r["source_line"] for r in c["rows"]) for c in cases))
 
-    due = next(c for c in cases if c["state"] == "due")
+    due = next(c for c in watched_payload["cases"] if c["id"] == "demo-ausflug")
+    check("watch marks due", due["state"] == "due" and due["reminder"].startswith("In two days: 8 €"))
     ics = client.get(f"/api/cases/{due['id']}/calendar.ics")
     # -P2D and -PT48H are the same 48 hours; the core and the fallback spell it differently.
     alarm = any(t in ics.text for t in ("TRIGGER:-PT48H", "TRIGGER:-P2D"))
     check("ics", ics.status_code == 200 and "BEGIN:VEVENT" in ics.text and alarm)
     reply = client.get(f"/api/cases/{due['id']}/reply.txt")
     check("reply", reply.status_code == 200 and len(reply.text.strip()) > 0)
-
-    ask = next(c for c in cases if c["question"])
-    answered = client.post(f"/api/cases/{ask['id']}/answer", data={"answer": "yes"}).json()["case"]
-    check("answer", not answered["question"])
 
     open_before = len(client.get("/api/cases").json()["cases"])
     client.post(f"/api/cases/{due['id']}/done")

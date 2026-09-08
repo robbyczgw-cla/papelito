@@ -16,13 +16,15 @@ question open, no artifact yet), ``superseded`` (replaced by an amendment),
 ``done``, ``dropped`` (unreadable, human gave no answer).
 
 ``delete_case`` really deletes: rows go, ``secure_delete`` zeroes the freed
-pages, and the file is vacuumed.
+pages, the file is vacuumed, and exact case-owned files in the app-managed
+photo and output directories are unlinked.
 """
 
 from __future__ import annotations
 
 import json
 import os
+import re
 import sqlite3
 import uuid
 from contextlib import contextmanager
@@ -32,6 +34,11 @@ from typing import Any, Iterator
 
 OPEN_STATES = ("open", "due")
 ALL_STATES = ("open", "due", "replied", "closed")
+REPO_ROOT = Path(__file__).resolve().parent.parent
+PRIVATE_PHOTO_ROOT = Path(os.environ.get("PAPELITO_PRIVATE_PHOTO_DIR", "")).expanduser() \
+    if os.environ.get("PAPELITO_PRIVATE_PHOTO_DIR", "").strip() \
+    else REPO_ROOT / "photos" / "private"
+_SAFE_CASE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS cases (
@@ -117,6 +124,63 @@ def _child_value(value: Any) -> str | None:
 def _language(value: Any) -> str:
     code = str(value or "en").strip().lower()[:2]
     return "de" if code == "de" else "en"
+
+
+def _managed_file(raw: Any, root: Path) -> Path | None:
+    """Return one exact file below ``root`` without following its final symlink."""
+    if not isinstance(raw, (str, os.PathLike)) or not str(raw).strip():
+        return None
+    candidate = Path(raw).expanduser()
+    if not candidate.is_absolute():
+        candidate = REPO_ROOT / candidate
+    try:
+        resolved_root = root.expanduser().resolve()
+        candidate = candidate.parent.resolve() / candidate.name
+        candidate.relative_to(resolved_root)
+    except (OSError, RuntimeError, ValueError):
+        return None
+    return candidate if candidate != resolved_root else None
+
+
+def case_photo_paths(case: dict[str, Any], root: Path | None = None) -> set[Path]:
+    """App-managed photos and crops named by one case, never arbitrary source files."""
+    photo_root = root or PRIVATE_PHOTO_ROOT
+    raw_paths: list[Any] = [case.get("photo"), case.get("source_crop")]
+    for paper in case.get("papers") or []:
+        if isinstance(paper, dict):
+            raw_paths.extend((paper.get("photo_path"), paper.get("source_crop")))
+    return {path for raw in raw_paths if (path := _managed_file(raw, photo_root)) is not None}
+
+
+def case_output_paths(case_id: str, root: Path | None = None) -> set[Path]:
+    """The two exact output filenames that the agent creates for a safe case id."""
+    if not _SAFE_CASE_ID.fullmatch(str(case_id)):
+        return set()
+    output_root = (root or Path(os.environ.get("PAPELITO_OUT", "~/.local/share/papelito/out"))).expanduser()
+    try:
+        output_root = output_root.resolve()
+    except (OSError, RuntimeError):
+        return set()
+    return {output_root / f"{case_id}.ics", output_root / f"{case_id}-antwort.txt"}
+
+
+def delete_case_files(
+    case_id: str,
+    case: dict[str, Any],
+    *,
+    protected_photos: set[Path] | None = None,
+    photo_root: Path | None = None,
+    output_root: Path | None = None,
+) -> int:
+    """Unlink exact case-owned files; never recurse and never cross managed roots."""
+    photos = case_photo_paths(case, photo_root) - (protected_photos or set())
+    paths = photos | case_output_paths(case_id, output_root)
+    removed = 0
+    for path in paths:
+        if path.is_file() or path.is_symlink():
+            path.unlink()
+            removed += 1
+    return removed
 
 
 class Store:
@@ -388,7 +452,18 @@ class Store:
                       (case_id, _now(), kind, detail))
 
     def delete_case(self, case_id: str) -> bool:
-        """Remove the case and everything attached to it. Nothing is kept, not even a tombstone."""
+        """Remove the case, its managed source files and its exact output files."""
+        case = self.get_case(case_id)
+        if case is None:
+            return False
+        rows = self._conn.execute(
+            "SELECT photo_path FROM papers WHERE case_id != ? AND photo_path IS NOT NULL",
+            (case_id,),
+        ).fetchall()
+        protected = case_photo_paths({"papers": [dict(row) for row in rows]})
+        # Delete files first. If a filesystem error occurs, the case row remains so
+        # the user can retry instead of receiving a false successful deletion.
+        delete_case_files(case_id, case, protected_photos=protected)
         with self._tx() as c:
             cur = c.execute("DELETE FROM cases WHERE id = ?", (case_id,))
             deleted = cur.rowcount > 0

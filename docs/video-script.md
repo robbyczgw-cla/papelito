@@ -4,7 +4,7 @@ Shooting script. English voiceover. No music.
 
 Devpost: **"Demo video (maximum 5 minutes)"**. That is a ceiling, not a target. Presentation scoring is whether the video shows the project working end-to-end and pitches problem / who / why. A 5:00 cut padded with architecture is worse than a tight ~3:00.
 
-**Target cut 2:50. Do not pad to 5:00.** Slack only if a tool is slow. If you still have time, extend the silent hold after the second watchdog run. Do not add a third language, a settings tour, or a chat.
+**Target cut 3:00. Do not pad to 5:00.** The first 2:40 remains unchanged. Add the 10-second live AgentCore call, then hold the architecture for the final 10 seconds. Do not add a third language, a settings tour, or a chat.
 
 The ping is the product. The card is the receipt. Open on the face-down phone. End on the architecture after the done-and-silence proof.
 
@@ -15,7 +15,7 @@ The ping is the product. The card is the receipt. Open on the face-down phone. E
 - Burn-in captions for every German line on screen. Do not caption English UI or the English voiceover.
 - Tool names as a monospace ticker the frame they fire. Leave each name up until the next one.
 - Demo profile on screen: Lucía García, Mateo, Kindergarten Sonnenblume. These are invented names. Use only `photos/demo/` and the fictional slips below.
-- Title cards for time jumps only: `Earlier that week` · `Wednesday` · `Two days before`.
+- Title cards for time jumps only: `Earlier that week` · `Tuesday` · `Two days before`.
 - Ping source: the `.ics` VALARM (Apple or Google Calendar, 48 hours before) and/or the English due line. Do not fake a push notification the product does not send.
 - Never hit send. Copy the reply, stop.
 - Diagram: `docs/architecture.png`, final 10 seconds.
@@ -31,7 +31,7 @@ Say **Strands Agents** once, in beat 1, in the sentence below. Do not list tools
 - Show an AWS console.
 - Put music under the silence after `papelito done`.
 
-## Runtime (2:50)
+## Runtime (3:00)
 
 | Time    | Beat                                      |
 | ------- | ----------------------------------------- |
@@ -40,8 +40,9 @@ Say **Strands Agents** once, in beat 1, in the sentence below. Do not list tools
 | 1:05    | Open calendar, copy reply                 |
 | 1:30    | Follow-up slip, amendment                 |
 | 2:05    | `python -m papelito.watch --today`, one reminder, `papelito done`, silence |
-| 2:40    | Architecture, 10 seconds                  |
-| 2:50    | End                                       |
+| 2:40    | Live AgentCore call, 10 seconds            |
+| 2:50    | Architecture, 10 seconds                  |
+| 3:00    | End                                       |
 
 Shoot to this table. Cut voice until each beat fits.
 
@@ -63,8 +64,8 @@ Shoot to this table. Cut voice until each beat fits.
 
 | Kind    | Text |
 | ------- | ---- |
-| Burn-in | In two days: 8 € for the Ausflug, cash, Fr. Huber. |
-| Source  | `In two days: 8 € for the Ausflug, cash, Fr. Huber.` |
+| Burn-in | In two days: 8 € for the outing, cash, Fr. Huber. |
+| Source  | `In two days: 8 € for the outing, cash, Fr. Huber.` |
 | Paper   | Leave the German unread. Caption it in beat 2 when it is photographed. |
 | Tools   | None. |
 
@@ -98,7 +99,7 @@ Ticker: `check_photo` → `read_note` → `extract_actions` → `resolve_dates` 
 
 | Kind    | Text |
 | ------- | ---- |
-| Burn-in | Outing to the zoo (Tiergarten). |
+| Burn-in | Outing to the zoo. |
 | Source  | `Ausflug in den Tiergarten` |
 | Burn-in | 8 € cash in an envelope for Fr. Huber. |
 | Source  | `Bitte 8 € bis Montag in einem beschrifteten Kuvert mitgeben.` |
@@ -113,7 +114,7 @@ Ticker: `check_photo` → `read_note` → `extract_actions` → `resolve_dates` 
 
 Keep the column headers in English: `what` · `what to do` · `by when` · `done for you`.
 
-Tap the deadline so the German crop is visible. Caption that crop: `Please send 8 € by Monday in a labelled envelope.` Source: `Bitte 8 € bis Montag in einem beschrifteten Kuvert mitgeben.`
+Open `View original`. Show the stored German source lines and the full uploaded photo. Caption the payment line: `Please send 8 € by Monday in a labelled envelope.` Source: `Bitte 8 € bis Montag in einem beschrifteten Kuvert mitgeben.`
 
 ---
 
@@ -144,9 +145,9 @@ Calendar event title in German stays German. Caption it: `Outing, 8 €, envelop
 
 ---
 
-## 1:30-2:05  Wednesday. Amendment.
+## 1:30-2:05  Tuesday. Amendment.
 
-**Picture.** Title card: `Wednesday`. A second slip on the table. Photograph it in the same page, same case list. `match_case` is the ticker that matters. One case, not two. Old Wednesday line struck through. New Friday date. Rain boots on the card. Reply re-drafted. Reminder moved. Paper count on the slip: two papers.
+**Picture.** Title card: `Tuesday`. A second slip on the table. Photograph it in the same page, same case list. `match_case` is the ticker that matters. One case, not two. Old Wednesday line struck through. New Friday date. Rain boots on the card. Reply re-drafted. Reminder moved. Paper count on the slip: two papers.
 
 **Paper in frame (print this).**
 
@@ -158,7 +159,7 @@ Rückmeldung bis morgen.
 
 **Voice.**
 
-> Wednesday. They moved it to Friday, rain boots, confirm by tomorrow.
+> Tuesday. They moved it to Friday, rain boots, confirm by tomorrow.
 >
 > Same case. Old date struck through. Calendar replaced. Reply rewritten. Reminder moved.
 
@@ -183,41 +184,41 @@ If the card says the row was updated from a later note, caption that too.
 
 ## 2:05-2:40  Watch once. One reminder. Done. Silence.
 
-**Picture.** Split or cut between a large terminal and the synthetic case list. Title card: `Two days before`. Fake clock. Run watch once. Exactly one English line appears in the terminal. The Ausflug case jumps to the top, marked due. The Elternabend case does not move. Run `papelito done` with the id on screen. Run watch again with the same `--today`. Empty stdout. The due badge is gone. Hold the empty terminal for two full seconds. Do not fill them.
+**Picture.** Split or cut between a large terminal and the synthetic case list. Title card: `Two days before`. The outing remains the amendment proof and is already done. With the same fixed demo date throughout this beat, run the daily watchdog once. It finds the next case due: the parents' evening reply on 12 September. Exactly one English line appears in the terminal. Mark that case done with its real id on screen. Run the watchdog again with the same `--today`. Empty stdout. The due badge is gone. Hold the empty terminal for two full seconds. Do not fill them.
 
 **Terminal (large font, one command at a time).**
 
 ```bash
-uv run python -m papelito.watch --today 2026-09-10
+.venv/bin/python -m papelito.watch --today 2026-09-10 --language en
 ```
 
 Stdout, one line:
 
 ```
-In two days: 8 € for the Ausflug, cash, Fr. Huber.
+In two days: Confirm attendance at the parents' evening, Kindergarten Sonnenblume.
 ```
 
 Ticker while it runs: `list_open` → `mark_due`
 
-The case turns due at the top of the list. Same English line on the card.
+The parents' evening case turns due at the top of the list. The same English line appears on the card.
 
 ```bash
-uv run papelito done ausflug
+.venv/bin/papelito done demo-elternabend
 ```
 
 Use the real case id from the list. Then:
 
 ```bash
-uv run python -m papelito.watch --today 2026-09-10
+.venv/bin/python -m papelito.watch --today 2026-09-10 --language en
 ```
 
 Stdout: nothing. Cursor blinks.
 
 **Voice.**
 
-> Two days before the deadline, the daily watchdog writes one reminder in English. One case. One line.
+> Two days before the deadline, the daily watchdog finds the next case due and writes one reminder in English. One case. One line.
 >
-> The demo parent taps done after sending the envelope.
+> The demo parent taps done after replying.
 >
 > Watch again.
 >
@@ -227,8 +228,8 @@ Stdout: nothing. Cursor blinks.
 
 | Kind    | Text |
 | ------- | ---- |
-| Burn-in | In two days: 8 € for the Ausflug, cash, Fr. Huber. |
-| Source  | `In two days: 8 € for the Ausflug, cash, Fr. Huber.` |
+| Burn-in | In two days: Confirm attendance at the parents' evening, Kindergarten Sonnenblume. |
+| Source  | `In two days: Confirm attendance at the parents' evening, Kindergarten Sonnenblume.` |
 
 Keep the due badge in English. Do not caption the empty second run. The point is nothing to read.
 
@@ -236,25 +237,30 @@ Do not run the after-deadline question in this video. One nag, then done, then s
 
 ---
 
-## 2:40-2:50  Architecture, final 10 seconds.
+## 2:40-2:50  Live AgentCore call.
+
+**Picture.** On the PWA demo card, tap `Run on AgentCore`. Hold on the returned card for the preset, invented German outing note: outing on 2026-09-09, 8 euro payment due on 2026-09-07. Trim the dead wait time. Do not show an AWS console, request inspector, infrastructure identifier or credential.
+
+**Voice.** One sentence.
+
+> The PWA sends preset demo text to the private AgentCore Runtime, which extracts the actions and explains the card.
+
+**On screen.** Use these two overlays exactly:
+
+- `Live AgentCore call · wait time trimmed`
+- `Preset demo text · extract + explain`
+
+---
+
+## 2:50-3:00  Architecture, final 10 seconds.
 
 **Picture.** Full frame `docs/architecture.png`. No zoom-out from a laptop. Highlight the local path, then the AgentCore Runtime sidecar. Keep this image on screen through the end.
 
 **Voice.** Do not say Strands Agents again. Two short sentences, no more than 25 words.
 
-> The local tools write the card, calendar, reply, and SQLite case. AgentCore handles seed-text extract and explain; the daily watchdog stays on systemd.
+> Local tools write the card, calendar, reply and case. A private AgentCore endpoint extracts and explains the PWA's preset demo text. Watchdog stays on systemd.
 
 **On screen.** Tool names are the labels on the diagram. No extra ticker.
-
----
-
-## Optional 10-second AgentCore insert
-
-Omit this from the 2:50 cut unless the Runtime response is clean and fast. If included, place it before the architecture, shift the architecture to 2:50-3:00, and end at 3:00. The architecture must remain the final 10 seconds.
-
-**Picture.** On the PWA seed card, tap `Run on AgentCore`. Show the returned card for the fixed Ausflug seed text. Keep any question on the card. Do not show an AWS console, a request inspector, or infrastructure identifiers.
-
-**Voice.** Optional: `The same extract and explain path also runs on AgentCore Runtime with invented seed text.`
 
 ---
 
@@ -264,10 +270,10 @@ Burn these. If a line is not on screen, skip it. English on the lower third. Kee
 
 | Timecode | Original | Burn-in |
 | -------- | -------- | ------- |
-| 0:12 | In two days: 8 € for the Ausflug, cash, Fr. Huber. | In two days: 8 € for the Ausflug, cash, Fr. Huber. |
+| 0:12 | In two days: 8 € for the outing, cash, Fr. Huber. | In two days: 8 € for the outing, cash, Fr. Huber. |
 | 0:30 | Ausflug in den Tiergarten am Mittwoch. Bitte 8 € bis Montag in einem beschrifteten Kuvert mitgeben, an Fr. Huber. | Outing to the zoo on Wednesday. Please send 8 € by Monday in a labelled envelope, to Fr. Huber. |
 | 0:45 | what / what to do / by when / done for you | what / what to do / by when / done for you |
-| 0:48 | Ausflug in den Tiergarten | Outing to the zoo (Tiergarten). |
+| 0:48 | Ausflug in den Tiergarten | Outing to the zoo. |
 | 0:50 | Bitte 8 € bis Montag in einem beschrifteten Kuvert mitgeben. | 8 € cash in an envelope for Fr. Huber. |
 | 0:52 | "bis Montag" | Mon 7 Sep 2026, from "by Monday". |
 | 0:55 | ✓ calendar event, alarm Sat 05.09. | Calendar event, alarm Sat 5 Sep. |
@@ -281,7 +287,7 @@ Burn these. If a line is not on screen, skip it. English on the lower third. Kee
 | 1:50 | (struck-through Wednesday row) | Outing on Wednesday. |
 | 1:53 | (new Friday row) | Outing on Friday. |
 | 1:58 | danke für die Information zum Ausflug am Freitag. Der Betrag von 8,- Euro wird am Montag in einem beschrifteten Kuvert mitgegeben, die Regenstiefel ebenso. | Thanks for the note on the Friday outing. The 8 euros go Monday in a labelled envelope, rain boots too. |
-| 2:15 | In two days: 8 € for the Ausflug, cash, Fr. Huber. | In two days: 8 € for the Ausflug, cash, Fr. Huber. |
+| 2:15 | In two days: Confirm attendance at the parents' evening, Kindergarten Sonnenblume. | In two days: Confirm attendance at the parents' evening, Kindergarten Sonnenblume. |
 
 ---
 
@@ -304,6 +310,6 @@ Watch: `list_open` `mark_due`
 - Print both slips. Use soft indoor light and a slight angle. Do not use a perfect scan.
 - Record the web app at phone size. Record the terminal at laptop size. Do not show the card in a small terminal window.
 - If a tool is slow, keep rolling. The cap is 5:00. Cut room tone, not the ticker.
-- Before recording the watchdog take, verify that `--today 2026-09-10` prints exactly one reminder for the synthetic Ausflug case due on 2026-09-12.
+- Before recording the watchdog take, mark the outing case done, then verify that `--today 2026-09-10` prints exactly one reminder for `demo-elternabend`, whose reply is due on 2026-09-12.
 - Rehearse the second watch until stdout is empty. That hold is the cut.
 - Voiceover after picture lock. Leave holes for the tools and for the empty watch.

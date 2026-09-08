@@ -332,7 +332,10 @@ def explain_in(language: str, case_id: str) -> dict:
     done = {a["kind"]: True for a in case["artifacts"] if a["status"] == "active"}
     done["saved"] = True
     card = _explain.explain_in(language, case, model=tm, done=done)
-    store.add_artifact(case_id, "card", card["text"])
+    # Keep the structured reader card. The PWA can then render the same verified
+    # translations without a second model call; older plain-text card artifacts
+    # remain readable through the deterministic fallback.
+    store.add_artifact(case_id, "card", json.dumps(card, ensure_ascii=False))
     return {"case_id": case_id, "text": card["text"], "rows": len(card["rows"])}
 
 

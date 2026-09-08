@@ -16,7 +16,7 @@ The interface either backend offers::
     mark_due(case_id, reminder)  -> bool         watchdog: the case turns "due"
     record_answer(case_id, ans)  -> bool         confidence gate, human answer
     set_child_id(case_id, child_id) -> bool      assign or clear a child
-    delete_case(case_id)         -> bool         really deletes the row
+    delete_case(case_id)         -> bool         deletes the row and app-managed files
 
 ``normalize`` flattens either shape into what the page renders: a case with one
 row per action, each row carrying what / do / by when / done for you, in the
@@ -125,7 +125,7 @@ def parse_date(value: Any) -> date | None:
 
 
 def format_date(value: Any, lang: str = DEFAULT_LANG) -> str:
-    """Short kitchen-table date: 'Fri 4 Sep' / 'Fr 4. Sep' / 'vie 4 sep.'."""
+    """Short kitchen-table date: 'Fri 4 Sep' / 'Fr 4. Sep'."""
     day = parse_date(value)
     if not day:
         return ""
@@ -198,7 +198,19 @@ def _child_value(value: Any) -> str | None:
 
 
 def _explain(case: dict, lang: str) -> dict | None:
-    """The reader-language card from the core. Deterministic, no model call."""
+    """The saved reader card, or a deterministic fallback with no model call."""
+    for artifact in reversed(case.get("artifacts") or []):
+        if artifact.get("kind") != "card" or artifact.get("status") != "active":
+            continue
+        try:
+            saved = json.loads(artifact.get("content") or "")
+        except (TypeError, json.JSONDecodeError):
+            break  # Backwards-compatible plain-text card: rebuild below.
+        if (isinstance(saved, dict) and saved.get("language") == lang
+                and isinstance(saved.get("rows"), list)
+                and isinstance(saved.get("labels"), (list, tuple))):
+            return saved
+        break
     try:
         from papelito import explain  # type: ignore
     except Exception:
@@ -223,9 +235,9 @@ def _core_reminder(case: dict, lang: str) -> str:
         return ""
 
 
-def _core_rows(case: dict, lang: str) -> list[dict]:
+def _core_rows(case: dict, lang: str, card: dict | None = None) -> list[dict]:
     """One row per action: what / do / by when / done for you."""
-    card = _explain(case, lang)
+    card = card or _explain(case, lang)
     if card:
         return [
             {
@@ -288,7 +300,8 @@ def _link_amendments(rows: list[dict], lang: str) -> None:
 
 def _from_core(raw: dict, lang: str) -> dict:
     """A case as papelito.store keeps it: cases + papers + actions + artifacts."""
-    rows = _core_rows(raw, lang)
+    card = _explain(raw, lang)
+    rows = _core_rows(raw, lang, card)
     _link_amendments(rows, lang)
     active = [r for r in rows if r["status"] == "active" and r["deadline"]]
     papers = raw.get("papers") or []
@@ -306,7 +319,7 @@ def _from_core(raw: dict, lang: str) -> dict:
         "child_name": child_name,
         "status": (raw.get("status") or "open").lower(),
         "sender": raw.get("sender") or "",
-        "what": raw.get("title") or "Kindergarten",
+        "what": (card or {}).get("title") or raw.get("title") or "Kindergarten",
         "rows": rows,
         "labels": list(LABELS[lang]),
         "lang": lang,
@@ -509,7 +522,17 @@ class SqliteStore:
                            question="" if answer == "yes" else REREAD[lang_code(lang)])
 
     def delete_case(self, case_id: str) -> bool:
-        """Really deletes: the row is gone, not flagged."""
+        """Delete the row plus the exact managed files owned only by this case."""
+        raw = self._raw("WHERE id = ?", (case_id,))
+        if not raw:
+            return False
+        others = self._raw("WHERE id != ?", (case_id,))
+        from papelito.store import case_photo_paths, delete_case_files
+
+        protected: set[Path] = set()
+        for other in others:
+            protected.update(case_photo_paths(other))
+        delete_case_files(case_id, raw[0], protected_photos=protected)
         with self._db() as db:
             return db.execute("DELETE FROM cases WHERE id = ?", (case_id,)).rowcount > 0
 

@@ -429,7 +429,8 @@ body[data-view="cases"] { --bar: 132px; }
 .ac-card {
   margin: 0;
   white-space: pre-wrap;
-  font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  overflow-x: auto;
+  font: 10px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 /* ----------------------------------------------------------------- buttons */

@@ -1,0 +1,17 @@
+[Unit]
+Description=Papelito watchdog for the synthetic judge demo
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=papelito
+Group=papelito
+WorkingDirectory=/opt/papelito/app
+EnvironmentFile=/etc/papelito/papelito.env
+ExecStart=/opt/papelito/venv/bin/python -m papelito.watch
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/papelito

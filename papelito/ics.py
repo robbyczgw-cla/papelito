@@ -60,6 +60,8 @@ def write_ics(
     events: list[str] = []
     for raw in actions:
         action = _as_mapping(raw)
+        if str(_get(action, "status") or "active").casefold() != "active":
+            continue
         block = _vevent(
             case_id=case_id,
             title=title,

@@ -12,9 +12,12 @@ translation, otherwise the German wording is kept.
 from __future__ import annotations
 
 import json
+import logging
 import re
 from datetime import date, timedelta
 from typing import Any
+
+_LOG = logging.getLogger(__name__)
 
 LABELS = {
     "en": ("what", "do", "by when", "done for you"),
@@ -45,11 +48,51 @@ QUESTIONS = {
            "line": "Diese Zeile ist unleserlich. Was steht dort? (oder Enter)"},
 }
 UNREADABLE = {"en": "unreadable, no artifact", "de": "unleserlich, kein Artefakt"}
+_KNOWN_ENGLISH_TITLES = {
+    "ausflug": "Outing",
+    "ausflug in den tiergarten": "Outing to the zoo",
+}
 
 
 def _lang(language: str | None) -> str:
     lang = (language or "en").lower()[:2]
     return lang if lang in LABELS else "en"
+
+
+def _reader_title(title: str, language: str) -> str:
+    if _lang(language) != "en":
+        return title
+    normalized = " ".join(title.casefold().split())
+    return _KNOWN_ENGLISH_TITLES.get(normalized, title)
+
+
+def _numeric_status_code(exc: Exception) -> int | None:
+    """Read a provider status without rendering the exception or response."""
+    sources: tuple[Any, ...] = (exc, getattr(exc, "response", None))
+    for source in sources:
+        if source is None:
+            continue
+        try:
+            value = getattr(source, "status_code", None)
+        except Exception:
+            continue
+        if isinstance(value, int) and not isinstance(value, bool):
+            return value
+        if isinstance(value, str) and value.isdecimal():
+            return int(value)
+    return None
+
+
+def _log_model_error(exc: Exception) -> None:
+    status_code = _numeric_status_code(exc)
+    if status_code is None:
+        _LOG.warning("explain_model_error error_class=%s", type(exc).__name__)
+    else:
+        _LOG.warning(
+            "explain_model_error error_class=%s status_code=%d",
+            type(exc).__name__,
+            status_code,
+        )
 
 
 def format_date(iso: str | None, language: str = "en") -> str:
@@ -117,25 +160,40 @@ def action_line(action: dict[str, Any], language: str, title: str = "", translat
     }[kind]
 
 
-def translate_actions(actions: list[dict[str, Any]], language: str, model: Any) -> dict[str, str]:
-    """Translate the German action wording with the text model; keep digits intact or drop the translation."""
+def translate_actions(actions: list[dict[str, Any]], language: str, model: Any,
+                      title: str = "") -> dict[str, str]:
+    """Translate the German title and action wording; keep digits intact or drop a translation."""
     lang = _lang(language)
     if lang == "de" or model is None or not actions:
         return {}
     from strands import Agent
 
     items = {str(i): a.get("action") or a.get("source_line") for i, a in enumerate(actions)}
+    if title:
+        items["__title__"] = title
     target = "English"
-    agent = Agent(model=model, callback_handler=None, name="papelito-explain",
-                  system_prompt=f"Translate short German Kindergarten instructions into {target}. Keep every number, date, "
-                                "time, € amount and proper name exactly as written. Keep the words Kindergarten, Hort, "
-                                "Elternabend, Ausflug untranslated (add a 2-3 word gloss in parentheses on first use). "
+    agent = Agent(model=model, callback_handler=None, name="papelito-explain", retry_strategy=None,
+                  system_prompt=f"Translate a short German Kindergarten notice title and its instructions into {target}. "
+                                "Translate German terms such as Elternabend and Ausflug into natural English. Keep every "
+                                "number, date, time, € amount and proper name exactly as written. Keep Kindergarten only "
+                                "when it is part of an institution name. "
                                 "Return ONLY a JSON object mapping the same keys to the translations.")
     try:
         raw = str(agent(json.dumps(items, ensure_ascii=False)))
-        m = re.search(r"\{.*\}", raw, re.S)
-        out = json.loads(m.group(0)) if m else {}
-    except Exception:
+    except Exception as exc:
+        _log_model_error(exc)
+        return {}
+    m = re.search(r"\{.*\}", raw, re.S)
+    if not m:
+        _LOG.warning("explain_model_invalid_json reason=no_object")
+        return {}
+    try:
+        out = json.loads(m.group(0))
+    except json.JSONDecodeError:
+        _LOG.warning("explain_model_invalid_json reason=json_decode")
+        return {}
+    if not isinstance(out, dict):
+        _LOG.warning("explain_model_invalid_json reason=wrong_shape")
         return {}
     ok: dict[str, str] = {}
     for k, v in out.items():
@@ -167,7 +225,8 @@ def explain_in(language: str, case: dict[str, Any], model: Any = None, done: dic
     lang = _lang(language)
     title = case.get("title") or "Kindergarten"
     actions = case.get("actions", [])
-    translated = translate_actions(actions, lang, model)
+    translated = translate_actions(actions, lang, model, title)
+    reader_title = translated.get("__title__") or _reader_title(title, lang)
     rows = []
     for i, a in _ordered(actions):
         status = a.get("status", "active")
@@ -175,18 +234,19 @@ def explain_in(language: str, case: dict[str, Any], model: Any = None, done: dic
         conf = float(a.get("confidence", 1.0))
         what = KIND_WHAT[lang].get(a.get("kind", "info"), "")
         if a.get("kind") == "attend":
-            what = title
+            what = reader_title
         row = {
             "id": a.get("id"),
             "kind": a.get("kind"),
             "what": what,
-            "do": action_line(a, lang, title, translated.get(str(i))),
+            "do": action_line(a, lang, reader_title, translated.get(str(i))),
             "by_when": format_date(a.get("deadline_iso"), lang),
             "deadline_iso": a.get("deadline_iso"),
             "amount": a.get("amount"),
             "source_line": a.get("source_line", ""),
             "confidence": conf,
             "status": status,
+            "superseded_by": a.get("superseded_by"),
             "gate": gate,
             "question": QUESTIONS[lang][a["question"] if a.get("question") in QUESTIONS[lang] else "line"] if (gate == "ask" and questions) else None,
             "done": [] if status == "superseded" or gate != "ok" else done_marks(a, done, lang),
@@ -198,10 +258,11 @@ def explain_in(language: str, case: dict[str, Any], model: Any = None, done: dic
         rows.append(row)
     sender = case.get("sender")
     header = {
-        "en": f"{title}" + (f" · from {sender}" if sender else "") + (f" · {format_date(case.get('event_date'), lang)}" if case.get("event_date") else ""),
-        "de": f"{title}" + (f" · von {sender}" if sender else "") + (f" · {format_date(case.get('event_date'), lang)}" if case.get("event_date") else ""),
+        "en": f"{reader_title}" + (f" · from {sender}" if sender else "") + (f" · {format_date(case.get('event_date'), lang)}" if case.get("event_date") else ""),
+        "de": f"{reader_title}" + (f" · von {sender}" if sender else "") + (f" · {format_date(case.get('event_date'), lang)}" if case.get("event_date") else ""),
     }[lang]
-    card = {"language": lang, "case_id": case.get("id"), "title": title, "header": header, "labels": LABELS[lang], "rows": rows}
+    card = {"language": lang, "case_id": case.get("id"), "title": reader_title, "header": header,
+            "labels": LABELS[lang], "rows": rows}
     card["text"] = render_card(card)
     return card
 

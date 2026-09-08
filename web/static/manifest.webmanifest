@@ -1,7 +1,7 @@
 {
   "name": "Papelito",
   "short_name": "Papelito",
-  "description": "The note from the Kindergarten, read, filed and answered. Nothing is sent without you.",
+  "description": "The note from the Kindergarten, read, filed and prepared. Papelito never sends the reply.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
