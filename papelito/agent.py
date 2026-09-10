@@ -287,6 +287,9 @@ def save_case(paper_id: str, case_id: str = "") -> dict:
         return {"error": f"unknown paper {paper_id}; run extract_actions first"}
     store = _store()
     ext = sess["extraction"]
+    duplicate = store.case_for_text(sess['text'])
+    if duplicate:
+        return {"case_id": duplicate['id'], "result": "duplicate"}
     case_id = case_id or (sess.get("match") or {}).get("case_id") or ""
     keep = [a for a in ext["actions"] if a["gate"] in ("ok", "ask") or a.get("confirmed")]
     actions = []
@@ -561,6 +564,8 @@ def process_photo(photo_path: str, received_on: str, language: str | None = None
     step("save_case", ok=bool(cid), result=saved.get("result"), superseded=saved.get("superseded"))
     if not cid:
         return None
+    if saved.get('result') == 'duplicate':
+        return {**store.get_case(cid), "duplicate": True}
     case_now = store.get_case(cid) or {}
     if needs_calendar(case_now):
         ics = write_ics(case_id=cid)

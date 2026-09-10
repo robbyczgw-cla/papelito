@@ -170,6 +170,8 @@ def analyse(photo: Path, received_on: str = "", lang: str = DEFAULT_LANG,
             result.get("question") or _msg("nothing", lang))
         return {"case": None, "saved": False, "question": question}
 
+    if result.get("duplicate"):
+        discard_photo(photo)
     case = normalize(result, lang)
     case["photo"] = case.get("photo") or str(photo)
     return {"case": case, "saved": True, "question": ""}

@@ -342,6 +342,8 @@ class Store:
     def confirm_action(self, action_id: str, deadline_iso: str | None = None, amount: float | None = None,
                        action: str | None = None) -> bool:
         """Human answered the one question: the pending action becomes active with confidence 1.0."""
+        from papelito.match import plan_amendment
+
         sets, vals = ["status = 'active'", "confidence = 1.0", "question = NULL"], []
         if deadline_iso:
             sets.append("deadline_iso = ?")
@@ -354,9 +356,20 @@ class Store:
             vals.append(action)
         vals.append(action_id)
         with self._tx() as c:
-            cur = c.execute(f"UPDATE actions SET {', '.join(sets)} WHERE id = ?", vals)
+            pending = c.execute("SELECT * FROM actions WHERE id = ? AND status = 'pending'", (action_id,)).fetchone()
+            if pending is None:
+                return False
+            paper = c.execute("SELECT kind FROM papers WHERE id = ?", (pending['paper_id'],)).fetchone()
+            cur = c.execute(f"UPDATE actions SET {', '.join(sets)} WHERE id = ? AND status = 'pending'", vals)
             if cur.rowcount:
                 row = c.execute("SELECT case_id FROM actions WHERE id = ?", (action_id,)).fetchone()
+                confirmed = dict(c.execute("SELECT * FROM actions WHERE id = ?", (action_id,)).fetchone())
+                if paper and paper['kind'] == 'amendment':
+                    old = [dict(r) for r in c.execute("SELECT * FROM actions WHERE case_id = ? AND status = 'active' AND id != ?", (row['case_id'], action_id))]
+                    for replaced, _ in plan_amendment(old, [confirmed])['supersede']:
+                        c.execute("UPDATE actions SET status = 'superseded', superseded_by = ? WHERE id = ?", (action_id, replaced['id']))
+                if confirmed['kind'] == 'attend' and confirmed['deadline_iso']:
+                    c.execute("UPDATE cases SET event_date = ? WHERE id = ?", (confirmed['deadline_iso'], row['case_id']))
                 c.execute("UPDATE artifacts SET status = 'superseded' WHERE case_id = ? AND status = 'active'", (row["case_id"],))
                 c.execute("INSERT INTO events (case_id, at, kind, detail) VALUES (?,?,?,?)",
                           (row["case_id"], _now(), "confirmed", action_id))
@@ -412,6 +425,16 @@ class Store:
 
         cases.sort(key=lambda k: (k["status"] != "due", next_deadline(k)))
         return cases
+
+    def case_for_text(self, text: str) -> dict[str, Any] | None:
+        """Find an exact transcript even when its case is already done."""
+        normalized = ' '.join(text.split())
+        if not normalized:
+            return None
+        for row in self._conn.execute("SELECT case_id, text FROM papers ORDER BY created_at DESC"):
+            if ' '.join(row['text'].split()) == normalized:
+                return self.get_case(row['case_id'])
+        return None
 
     def set_status(self, case_id: str, status: str, detail: str | None = None) -> None:
         if status not in ALL_STATES:

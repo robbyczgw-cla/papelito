@@ -229,8 +229,10 @@ def plan_amendment(old_actions: list[dict], new_actions: list[dict]) -> dict[str
     active = [a for a in old_actions if a.get("status", "active") == "active"]
     supersede: list[tuple[dict, dict]] = []
     taken: set[str] = set()
-    cancelled = any(n.get("kind") == "cancel" for n in new_actions)
+    cancelled = any(n.get("kind") == "cancel" and n.get("status", "active") == "active" for n in new_actions)
     for n in new_actions:
+        if n.get("status", "active") != "active":
+            continue
         for o in active:
             if o.get("id") in taken:
                 continue
@@ -262,7 +264,7 @@ def apply_amendment(store: Store, case_id: str, paper: dict[str, Any], new_actio
     paper = dict(paper, kind=paper.get("kind") or "amendment")
     paper_id = store.add_paper(case_id, paper)
     plan = plan_amendment(case["actions"], new_actions)
-    to_add = [dict(a, paper_id=paper_id, status="active") for a in plan["add"]]
+    to_add = [dict(a, paper_id=paper_id, status=a.get("status", "active")) for a in plan["add"]]
     added_ids = store.add_actions(case_id, to_add)
     for a, aid in zip(to_add, added_ids):
         a["id"] = aid
@@ -274,7 +276,7 @@ def apply_amendment(store: Store, case_id: str, paper: dict[str, Any], new_actio
     stale = store.supersede_artifacts(case_id)
     update: dict[str, Any] = {"id": case_id}
     meta = meta or {}
-    new_event = next((a["deadline_iso"] for a in to_add if a["kind"] == "attend" and a.get("deadline_iso")), None)
+    new_event = next((a["deadline_iso"] for a in to_add if a["kind"] == "attend" and a.get("deadline_iso") and a["status"] == "active"), None)
     if new_event:
         update["event_date"] = new_event
     if meta.get("title") and (case.get("title") in (None, "", "Kindergarten")):
